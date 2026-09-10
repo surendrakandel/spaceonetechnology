@@ -12,7 +12,7 @@
 ## Verification
 
 - Type/Svelte checks: no errors or warnings.
-- Unit and mocked-service tests: 11 passing (includes Google create/update/conflict/delete, ownership, encryption, mail acceptance/failure and existing import/schema tests).
+- Unit and mocked-service tests: 12 passing (includes Google create/update/conflict/delete, OAuth state/PKCE/replay, ownership, encryption, mail acceptance/failure and existing import/schema tests).
 - Local D1/R2 integration tests: 24 passing, using an isolated `.wrangler/review-state` database; includes role boundaries, availability ownership, statistics, interview state updates, private files, invitation and reset lifecycle, imports, and public/protected page rendering.
 - Production build and Wrangler deployment dry run passed.
 - Browser review: weekly calendar rendered with a fictional interview and overlapping availability. Mark completed updated the calendar; navigating to Dashboard showed 1 application, 0 upcoming interviews, 1 completed interview.

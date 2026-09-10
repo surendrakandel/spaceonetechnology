@@ -17,6 +17,8 @@ import type { Job, Status } from '$lib/types';
 function queryJobs(event: RequestEvent, id?: string, subjectId?: string) {
 	const user = requireUser(event);
 	const database = db(event);
+	const operatorBoard = user.role !== 'client' && !id;
+	const clientApps = sql`SELECT a.id FROM applications a JOIN users u ON u.id=a.user_id WHERE a.job_id=${jobs.id} AND u.access_role='client'`;
 	const visible =
 		user.role !== 'client'
 			? sql`1=1`
@@ -35,17 +37,29 @@ function queryJobs(event: RequestEvent, id?: string, subjectId?: string) {
 			...publicJobColumns(),
 			application_count: sql<number>`(SELECT COUNT(*) FROM applications counts JOIN users applicants ON applicants.id=counts.user_id WHERE counts.job_id=${jobs.id} AND applicants.access_role='client' AND ${submitted({ id: sql`counts.id`, status: sql`counts.status`, applied_at: sql`counts.applied_at` })})`,
 			status: sql<Status>`COALESCE(${applications.status},'to_apply')`,
-			saved: sql<number>`COALESCE(${applications.saved},0)`,
-			follow_up: applications.follow_up,
+			application_statuses: operatorBoard
+				? sql<string>`(SELECT json_group_array(DISTINCT a.status) FROM applications a WHERE a.id IN (${clientApps}))`
+				: sql<string>`'[]'`,
+			interview_states: operatorBoard
+				? sql<string>`(SELECT json_group_array(DISTINCT i.state) FROM interviews i WHERE i.application_id IN (${clientApps}))`
+				: sql<string>`'[]'`,
+			saved: operatorBoard
+				? sql<number>`(SELECT COALESCE(MAX(a.saved),0) FROM applications a WHERE a.id IN (${clientApps}))`
+				: sql<number>`COALESCE(${applications.saved},0)`,
+			follow_up: operatorBoard
+				? sql<
+						string | null
+					>`(SELECT MIN(a.follow_up) FROM applications a WHERE a.id IN (${clientApps}) AND a.status NOT IN ('offer','rejected','withdrawn'))`
+				: applications.follow_up,
 			applied_at: applications.applied_at,
 			version: sql<number>`COALESCE(${applications.version},0)`,
 			application_id: applications.id,
 			next_interview: sql<
 				string | null
-			>`(SELECT MIN(i.starts_at) FROM interviews i WHERE i.application_id=${applications.id} AND i.state='scheduled' AND julianday(i.ends_at) > julianday('now'))`,
+			>`(SELECT MIN(i.starts_at) FROM interviews i WHERE ${operatorBoard ? sql`i.application_id IN (${clientApps})` : sql`i.application_id=${applications.id}`} AND i.state='scheduled' AND julianday(i.ends_at) > julianday('now'))`,
 			interview_state: sql<
 				string | null
-			>`(SELECT i.state FROM interviews i WHERE i.application_id=${applications.id} ORDER BY CASE WHEN i.state='scheduled' THEN 0 ELSE 1 END,i.starts_at DESC LIMIT 1)`
+			>`(SELECT i.state FROM interviews i WHERE ${operatorBoard ? sql`i.application_id IN (${clientApps})` : sql`i.application_id=${applications.id}`} ORDER BY CASE WHEN i.state='scheduled' THEN 0 ELSE 1 END,i.starts_at DESC LIMIT 1)`
 		})
 		.from(jobs)
 		.leftJoin(

@@ -38,6 +38,17 @@
 	let schedule = $state(false);
 	let editing = $state<(typeof data.interviews)[number] | undefined>();
 	let deleting = $state('');
+	let applicationContext = $derived(`${data.job.id}:${data.candidate || data.user.id}`);
+	$effect(() => {
+		// Svelte keeps this page mounted when selecting another candidate or job.
+		void applicationContext;
+		tab = 'overview';
+		schedule = false;
+		editing = undefined;
+		deleting = '';
+		error = '';
+		success = '';
+	});
 	async function action(key: string, fn: () => Promise<unknown>, message = 'Saved.') {
 		busy = key;
 		error = '';
@@ -306,14 +317,14 @@
 			<div class="mt-6">
 				<TaskList items={data.tasks} jobId={data.job.id} candidate={data.candidate} />
 			</div>
-			<CandidateCalendar
-				calendar={data.calendar}
-				candidate={data.candidate || data.user.id}
-				own={!data.candidate || data.candidate === data.user.id}
-				jobId={data.job.id}
-				timezone={data.user.timezone}
-				meetings={data.interviews}
-			/>
+			{#key applicationContext}<CandidateCalendar
+					calendar={data.calendar}
+					candidate={data.candidate || data.user.id}
+					own={!data.candidate || data.candidate === data.user.id}
+					jobId={data.job.id}
+					timezone={data.user.timezone}
+					meetings={data.interviews}
+				/>{/key}
 			<section class="panel interview-panel">
 				<div class="section-heading">
 					<h2>Interviews <span class="count">{data.interviews.length}</span></h2>
@@ -325,7 +336,10 @@
 						}}><Plus size={16} />Add interview</button
 					>
 				</div>
-				{#each data.interviews as item}<div class="detail-interview">
+				{#each data.interviews as item}<div
+						id={`interview-${item.id}`}
+						class="detail-interview scroll-mt-20"
+					>
 						<CalendarDays size={23} />
 						<div>
 							<strong>{item.title}</strong>

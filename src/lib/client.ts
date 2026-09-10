@@ -8,18 +8,29 @@ export async function api<T = { ok: boolean }>(
 		headers: body instanceof FormData ? undefined : { 'Content-Type': 'application/json' },
 		body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body)
 	});
-	const data = (await response.json()) as T & { message?: string };
+	let data: T & { message?: string };
+	try {
+		data = await response.json();
+	} catch {
+		throw new Error('The server could not complete this request. Please refresh and try again.');
+	}
 	if (!response.ok) throw new Error(data.message || 'Something went wrong. Please try again.');
 	return data;
 }
 export function date(value: string | null, timezone = 'America/Denver', time = false) {
-	return value
-		? new Intl.DateTimeFormat('en-US', {
-				month: 'short',
-				day: 'numeric',
-				...(time ? { hour: 'numeric', minute: '2-digit', timeZone: timezone } : { timeZone: 'UTC' })
-			}).format(new Date(value.length === 10 ? `${value}T12:00:00Z` : value))
-		: '—';
+	if (!value) return '—';
+	const parsed = new Date(value.length === 10 ? `${value}T12:00:00Z` : value);
+	if (!Number.isFinite(parsed.getTime())) return '—';
+	const options: Intl.DateTimeFormatOptions = {
+		month: 'short',
+		day: 'numeric',
+		...(time ? { hour: 'numeric', minute: '2-digit', timeZone: timezone } : { timeZone: 'UTC' })
+	};
+	try {
+		return new Intl.DateTimeFormat('en-US', options).format(parsed);
+	} catch {
+		return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(parsed);
+	}
 }
 export function initials(name: string) {
 	return name
@@ -31,7 +42,8 @@ export function initials(name: string) {
 }
 export function tags(value: string): string[] {
 	try {
-		return JSON.parse(value);
+		const parsed: unknown = JSON.parse(value);
+		return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
 	} catch {
 		return [];
 	}

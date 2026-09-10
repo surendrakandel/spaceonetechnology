@@ -46,7 +46,16 @@ function client() {
 function sql(command) {
 	const r = spawnSync(
 		'npx',
-		['wrangler', 'd1', 'execute', 'space-one-clients', '--local', ...(process.env.TEST_D1_PERSIST ? ['--persist-to', process.env.TEST_D1_PERSIST] : []), '--command', command],
+		[
+			'wrangler',
+			'd1',
+			'execute',
+			'space-one-clients',
+			'--local',
+			...(process.env.TEST_D1_PERSIST ? ['--persist-to', process.env.TEST_D1_PERSIST] : []),
+			'--command',
+			command
+		],
 		{ encoding: 'utf8' }
 	);
 	assert.equal(r.status, 0, r.stderr);
@@ -245,6 +254,11 @@ test('Roles, invitations, imports and candidate operations', { timeout: 240000 }
 		assert.equal(candidate.candidate.interviews_completed, 1);
 		assert.equal(candidate.applications[0].job_id, jobId);
 		assert.equal(ok(await staff.req(`jobs/${jobId}`)).job.application_count, 1);
+		const boardJob = ok(await staff.req('jobs')).jobs.find(j => j.id === jobId);
+		assert.ok(JSON.parse(boardJob.application_statuses).includes('interview'));
+		assert.ok(JSON.parse(boardJob.interview_states).includes('completed'));
+		assert.equal(boardJob.interview_state, 'completed');
+		assert.deepEqual(JSON.parse(ok(await bob.req('jobs')).jobs.find(j => j.id === jobId).application_statuses), []);
 	});
 	await t.test(
 		'metrics retain submissions after status changes and share the client calendar with operators',
@@ -279,6 +293,7 @@ test('Roles, invitations, imports and candidate operations', { timeout: 240000 }
 			assert.equal(ok(await staff.req(`candidates/${aliceId}`)).candidate.applied, 1);
 			const meeting = shared.find((i) => i.user_id === aliceId);
 			ok(await alice.req(`interviews/${meeting.id}`, 'PATCH', { state: 'scheduled' }));
+			assert.equal(ok(await staff.req('jobs')).jobs.find(j => j.id === jobId).next_interview, meeting.starts_at);
 			assert.equal(ok(await alice.req('dashboard')).stats.interviews, 0);
 			ok(await staff.req(`interviews/${meeting.id}`, 'PATCH', { state: 'completed' }));
 			assert.equal(ok(await alice.req('dashboard')).stats.interviews, 1);
@@ -362,6 +377,8 @@ test('Roles, invitations, imports and candidate operations', { timeout: 240000 }
 				'/imports',
 				'/invitations',
 				'/inquiries',
+				'/jobs',
+				`/jobs/${jobId}`,
 				`/jobs/${jobId}?candidate=${aliceId}`
 			]) {
 				const r = await fetch(base + path, { headers: { cookie: staff.cookie } });

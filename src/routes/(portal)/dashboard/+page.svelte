@@ -60,7 +60,7 @@
 					<a class="text-button" href="/jobs">All jobs <ArrowRight size={15} /></a>
 				</div>
 				{#each data.jobs
-					.filter((j) => j.saved || j.follow_up || j.status === 'to_apply')
+					.filter((j) => j.saved || j.follow_up || !['offer', 'rejected', 'withdrawn'].includes(j.status))
 					.slice(0, 4) as job}<a
 						class="flex items-center gap-4 py-5 border-b border-line [&>span:nth-child(2)]:grow [&_small]:block [&_small]:text-muted"
 						href={`/jobs/${job.id}`}
@@ -70,8 +70,9 @@
 					>{:else}<div class="small-empty">
 						<BriefcaseBusiness size={25} />
 						<p>
-							Your team will share opportunities here. In the meantime, complete your profile and
-							add a resume.
+							{data.jobs.length
+								? 'You’re caught up. Your application history is always available on the job board.'
+								: 'Your team will share opportunities here. In the meantime, complete your profile and add a resume.'}
 						</p>
 						<a class="inline-link" href="/settings">Complete your profile</a>
 					</div>{/each}

@@ -53,6 +53,8 @@ export interface Job {
 	salary_period: string;
 	hiring_team: string;
 	application_count: number;
+	application_statuses: string;
+	interview_states: string;
 	id: string;
 	title: string;
 	company: string;

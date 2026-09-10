@@ -19,6 +19,16 @@
 	import { statuses, statusLabel, type Job } from '$lib/types';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	let { data } = $props();
+	let operator = $derived(data.user.role !== 'client');
+	const statusRank = (job: Job) =>
+		operator
+			? Math.min(
+					...tags(job.application_statuses)
+						.map((s) => statuses.indexOf(s as (typeof statuses)[number]))
+						.filter((n) => n >= 0),
+					statuses.length
+				)
+			: statuses.indexOf(job.status);
 	let query = $state(page.url.searchParams.get('q') || '');
 	let status = $state(page.url.searchParams.get('status') || 'all');
 	let sort = $state(page.url.searchParams.get('sort') || 'newest');
@@ -41,9 +51,19 @@
 						`${j.title} ${j.company} ${j.location} ${j.tags}`
 							.toLowerCase()
 							.includes(query.toLowerCase())) &&
-					(status === 'all' || j.status === status) &&
+					(status === 'all' ||
+						(operator
+							? status === 'to_apply'
+								? j.application_count === 0
+								: status === 'applied'
+									? j.application_count > 0
+									: tags(j.application_statuses).includes(status)
+							: j.status === status)) &&
 					(workplace === 'all' || j.workplace === workplace) &&
-					(interviewFilter === 'all' || j.interview_state === interviewFilter) &&
+					(interviewFilter === 'all' ||
+						(operator
+							? tags(j.interview_states).includes(interviewFilter)
+							: j.interview_state === interviewFilter)) &&
 					(!savedOnly || !!j.saved) &&
 					(publication === 'all' ||
 						(publication === 'live'
@@ -64,7 +84,7 @@
 								: sort === 'interview_state'
 									? interviewOrder(a.interview_state) - interviewOrder(b.interview_state)
 									: sort === 'status'
-										? statuses.indexOf(a.status) - statuses.indexOf(b.status)
+										? statusRank(a) - statusRank(b)
 										: sort === 'company'
 											? a.company.localeCompare(b.company)
 											: sort === 'interview'
@@ -185,7 +205,7 @@
 				onclick={() => {
 					savedOnly = !savedOnly;
 					limit = 15;
-				}}><Bookmark size={15} />Saved jobs</button
+				}}><Bookmark size={15} />{operator ? 'Saved by clients' : 'Saved jobs'}</button
 			>
 		</div>
 		<div class="status-tabs" role="group" aria-label="Application status">
@@ -197,11 +217,16 @@
 					}}
 					>{tab === 'all'
 						? 'All jobs'
-						: statusLabel[tab as keyof typeof statusLabel]}{#if tab === 'all'}<span
+						: operator && tab === 'to_apply'
+							? 'No applications'
+							: statusLabel[tab as keyof typeof statusLabel]}{#if tab === 'all'}<span
 							>{data.jobs.length}</span
 						>{/if}</button
 				>{/each}
 		</div>
+		{#if operator}<p class="text-xs text-muted mt-3">
+				Status filters match activity from any client. A job can appear in more than one stage.
+			</p>{/if}
 		<div class="board-toolbar">
 			<div class="search-input">
 				<Search size={17} /><input
@@ -275,7 +300,7 @@
 				{results.length === 1 ? 'opportunity' : 'opportunities'}{query
 					? ' matching your search'
 					: ''}</span
-			><span>YOUR PROGRESS</span>
+			><span>{operator ? 'CLIENT ACTIVITY' : 'YOUR PROGRESS'}</span>
 		</div>
 		<div class="job-list">
 			{#each results.slice(0, limit) as job, index}<article class="job-row">

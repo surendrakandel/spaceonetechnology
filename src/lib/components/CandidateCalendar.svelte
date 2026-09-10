@@ -12,6 +12,8 @@
 		meetings = []
 	}: {
 		calendar: {
+			available: boolean;
+			setup_message: string;
 			configured: boolean;
 			connected: boolean;
 			connection: { last_synced_at: string | null; last_error: string } | null;
@@ -160,6 +162,7 @@
 			: 'Review interviews and the times this candidate has shared. Other Google events appear only as busy time.'}
 		All times in {timezone}.
 	</p>
+	{#if !calendar.available}<p class="alert" role="status">{calendar.setup_message}</p>{/if}
 	<div class="flex flex-wrap gap-3 items-center my-5">
 		{#if calendar.connected}<span class="neutral-badge">Google connected</span><button
 				class="button secondary"
@@ -185,8 +188,10 @@
 				>Google Calendar is not connected. Interview records and shared availability are shown
 				below.</span
 			>{/if}
-		{#if own}<button class="text-button" disabled={busy} onclick={() => (adding = !adding)}
-				><Plus size={16} />Share availability</button
+		{#if own}<button
+				class="text-button"
+				disabled={busy || !calendar.available}
+				onclick={() => (adding = !adding)}><Plus size={16} />Share availability</button
 			>{/if}
 	</div>
 	{#if disconnecting}<div class="alert">
@@ -248,7 +253,9 @@
 					}).format(new Date(day + 'T12:00:00Z'))}
 				</h3>
 				{#each meetings.filter((m) => m.state !== 'cancelled' && onDay(m.starts_at, m.ends_at, day)) as m}<a
-						href={m.job_id ? `/jobs/${m.job_id}${own ? '' : '?candidate=' + candidate}` : '#'}
+						href={m.job_id
+							? `/jobs/${m.job_id}${own ? '' : '?candidate=' + candidate}#interview-${m.id}`
+							: `#interview-${m.id}`}
 						class="block rounded bg-forest text-white p-2 mb-2 text-xs"
 						><strong>{m.title}</strong><span class="block mt-1"
 							>{time(m.starts_at)} – {time(m.ends_at)}</span

@@ -22,6 +22,35 @@ const scopes = [
 ];
 const callbackPath = '/api/calendar/google/callback';
 const envOf = (e: RequestEvent) => e.platform!.env;
+const calendarSetupMessage =
+	'Calendar setup is pending. Your team needs to apply the latest database migrations. Interviews and job applications remain available.';
+async function calendarStorageReady(e: RequestEvent) {
+	const result = await db(e)
+		.select({ count: sql<number>`count(*)` })
+		.from(sql`sqlite_master`)
+		.where(
+			sql`type='table' AND name IN ('calendar_connections','calendar_oauth','calendar_links','availability')`
+		)
+		.get();
+	return result?.count === 4;
+}
+async function interviewLink(e: RequestEvent, interviewId: string) {
+	// Older deployments have no linked Google events. Do not make their core interview
+	// workflow depend on an additive calendar migration, or hide other database errors.
+	try {
+		return await db(e)
+			.select()
+			.from(calendarLinks)
+			.where(eq(calendarLinks.interview_id, interviewId))
+			.get();
+	} catch (ex) {
+		let cause: unknown = ex;
+		for (let depth = 0; cause instanceof Error && depth < 5; depth++, cause = cause.cause) {
+			if (/no such table:\s*(?:main\.)?calendar_links\b/i.test(cause.message)) return undefined;
+		}
+		throw ex;
+	}
+}
 function configured(e: RequestEvent) {
 	const env = envOf(e);
 	return !!(
@@ -185,12 +214,9 @@ export async function syncInterview(
 	resolution?: 'portal' | 'google'
 ) {
 	const item = await calendarOwner(e, interviewId);
-	let link = await db(e)
-		.select()
-		.from(calendarLinks)
-		.where(eq(calendarLinks.interview_id, interviewId))
-		.get();
+	let link = await interviewLink(e, interviewId);
 	if (onlyLinked && !link) return;
+	if (!(await calendarStorageReady(e))) error(503, calendarSetupMessage);
 	try {
 		const access = await accessToken(e, item.user_id);
 		if (!link) {
@@ -338,11 +364,7 @@ async function applyGoogleEvent(
 }
 export async function deleteGoogleInterview(e: RequestEvent, interviewId: string) {
 	const item = await calendarOwner(e, interviewId);
-	const link = await db(e)
-		.select()
-		.from(calendarLinks)
-		.where(eq(calendarLinks.interview_id, interviewId))
-		.get();
+	const link = await interviewLink(e, interviewId);
 	if (!link) return;
 	try {
 		await google(
@@ -362,6 +384,16 @@ export async function deleteGoogleInterview(e: RequestEvent, interviewId: string
 }
 export async function calendarSummary(e: RequestEvent, userId = requireUser(e).id, jobId?: string) {
 	if (userId !== requireUser(e).id) requireOperator(e);
+	if (!(await calendarStorageReady(e)))
+		return {
+			available: false,
+			setup_message: calendarSetupMessage,
+			configured: false,
+			connected: false,
+			connection: null,
+			slots: [] as (typeof availability.$inferSelect)[],
+			links: [] as (typeof calendarLinks.$inferSelect)[]
+		};
 	const connection = await db(e)
 		.select({
 			connected_at: calendarConnections.connected_at,
@@ -385,6 +417,8 @@ export async function calendarSummary(e: RequestEvent, userId = requireUser(e).i
 		.limit(300);
 	const links = await db(e).select().from(calendarLinks).where(eq(calendarLinks.user_id, userId));
 	return {
+		available: true,
+		setup_message: '',
 		configured: configured(e),
 		connected: !!connection,
 		connection: connection || null,
@@ -402,6 +436,8 @@ export async function calendarApi(
 	if (path[0] !== 'calendar') return null;
 	const actor = requireUser(e),
 		database = db(e);
+	if (!(path[1] === 'summary' && method === 'GET') && !(await calendarStorageReady(e)))
+		error(503, calendarSetupMessage);
 	if (path[1] === 'google' && path[2] === 'connect' && method === 'POST') {
 		const config = settings(e),
 			state = token(),
@@ -418,14 +454,12 @@ export async function calendarApi(
 		await database
 			.delete(calendarOAuth)
 			.where(or(eq(calendarOAuth.user_id, actor.id), lt(calendarOAuth.expires_at, Date.now())));
-		await database
-			.insert(calendarOAuth)
-			.values({
-				state_hash: await digest(state),
-				user_id: actor.id,
-				verifier,
-				expires_at: Date.now() + 600000
-			});
+		await database.insert(calendarOAuth).values({
+			state_hash: await digest(state),
+			user_id: actor.id,
+			verifier,
+			expires_at: Date.now() + 600000
+		});
 		e.cookies.set('google_oauth_state', state, {
 			path: callbackPath,
 			httpOnly: true,

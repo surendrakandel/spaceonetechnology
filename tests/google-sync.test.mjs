@@ -9,7 +9,11 @@ import { encryptToken } from '../src/lib/server/calendar-crypto.ts';
 const require = createRequire(import.meta.url);
 const { buildSync } = createRequire(require.resolve('drizzle-kit'))('esbuild');
 const bundle = buildSync({
-	entryPoints: ['src/lib/server/google-calendar.ts'],
+	stdin: {
+		contents: `export * from './src/lib/server/google-calendar.ts'; export { handleApi } from './src/lib/server/api.ts'; export { load as jobPageLoad } from './src/routes/(portal)/jobs/[id]/+page.server.ts';`,
+		resolveDir: process.cwd(),
+		loader: 'ts'
+	},
 	bundle: true,
 	format: 'esm',
 	platform: 'node',
@@ -20,13 +24,20 @@ const bundle = buildSync({
 mkdirSync('.svelte-kit', { recursive: true });
 const file = resolve('.svelte-kit/google-calendar-test.mjs');
 writeFileSync(file, bundle);
-const { syncInterview, calendarApi, deleteGoogleInterview } = await import(pathToFileURL(file));
+const {
+	syncInterview,
+	calendarApi,
+	deleteGoogleInterview,
+	calendarSummary,
+	handleApi,
+	jobPageLoad
+} = await import(pathToFileURL(file));
 
-function fixture() {
+function fixture(calendar = true) {
 	const sqlite = new DatabaseSync(':memory:');
 	sqlite.exec('PRAGMA foreign_keys=ON');
 	for (const f of readdirSync('migrations')
-		.filter((f) => f.endsWith('.sql'))
+		.filter((f) => f.endsWith('.sql') && (calendar || !f.startsWith('0003_')))
 		.sort())
 		sqlite.exec(readFileSync('migrations/' + f, 'utf8'));
 	sqlite.exec(
@@ -165,30 +176,128 @@ test('Google sync creates one event, handles conflicts, keeps ownership, and ret
 	}
 });
 
-test('Google OAuth uses PKCE and consumes state once for the signed-in owner', async()=>{
- const {sqlite,event}=fixture(); const cookies=new Map();
- event.cookies={get:k=>cookies.get(k),set:(k,v)=>cookies.set(k,v),delete:k=>cookies.delete(k)};
- const old=globalThis.fetch;let exchanges=0;
- globalThis.fetch=async(url,options)=>{
-  assert.equal(url,'https://oauth2.googleapis.com/token');
-  assert.equal(options.body.get('code_verifier').length,64);
-  assert.equal(options.body.get('redirect_uri'),'https://candidate.spaceone.tech/api/calendar/google/callback');
-  exchanges++;
-  return Response.json({access_token:'access',refresh_token:'refresh-private',scope:'https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar.freebusy'});
- };
- try{
-  const connect=await calendarApi(event,['calendar','google','connect'],'POST',async()=>({}));
-  const url=new URL((await connect.json()).url);const state=url.searchParams.get('state');
-  assert.equal(url.searchParams.get('code_challenge_method'),'S256');assert.equal(url.searchParams.get('access_type'),'offline');
-  event.url=new URL('https://candidate.spaceone.tech/api/calendar/google/callback?state='+state+'&code=authorization-code');
-  event.locals.user={id:'b',role:'client'};
-  await assert.rejects(calendarApi(event,['calendar','google','callback'],'GET',async()=>({})),e=>e.status===400);
-  assert.equal(exchanges,0);
-  cookies.set('google_oauth_state',state);event.locals.user={id:'a',role:'client'};
-  await assert.rejects(calendarApi(event,['calendar','google','callback'],'GET',async()=>({})),e=>e.status===303 && e.location==='/interviews?google=connected');
-  assert.equal(exchanges,1);assert.notEqual(sqlite.prepare('SELECT refresh_token FROM calendar_connections').get().refresh_token,'refresh-private');
-  cookies.set('google_oauth_state',state);
-  await assert.rejects(calendarApi(event,['calendar','google','callback'],'GET',async()=>({})),e=>e.status===400);
-  assert.equal(exchanges,1);
- }finally{globalThis.fetch=old;sqlite.close();}
+test('Google OAuth uses PKCE and consumes state once for the signed-in owner', async () => {
+	const { sqlite, event } = fixture();
+	const cookies = new Map();
+	event.cookies = {
+		get: (k) => cookies.get(k),
+		set: (k, v) => cookies.set(k, v),
+		delete: (k) => cookies.delete(k)
+	};
+	const old = globalThis.fetch;
+	let exchanges = 0;
+	globalThis.fetch = async (url, options) => {
+		assert.equal(url, 'https://oauth2.googleapis.com/token');
+		assert.equal(options.body.get('code_verifier').length, 64);
+		assert.equal(
+			options.body.get('redirect_uri'),
+			'https://candidate.spaceone.tech/api/calendar/google/callback'
+		);
+		exchanges++;
+		return Response.json({
+			access_token: 'access',
+			refresh_token: 'refresh-private',
+			scope:
+				'https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar.freebusy'
+		});
+	};
+	try {
+		const connect = await calendarApi(
+			event,
+			['calendar', 'google', 'connect'],
+			'POST',
+			async () => ({})
+		);
+		const url = new URL((await connect.json()).url);
+		const state = url.searchParams.get('state');
+		assert.equal(url.searchParams.get('code_challenge_method'), 'S256');
+		assert.equal(url.searchParams.get('access_type'), 'offline');
+		event.url = new URL(
+			'https://candidate.spaceone.tech/api/calendar/google/callback?state=' +
+				state +
+				'&code=authorization-code'
+		);
+		event.locals.user = { id: 'b', role: 'client' };
+		await assert.rejects(
+			calendarApi(event, ['calendar', 'google', 'callback'], 'GET', async () => ({})),
+			(e) => e.status === 400
+		);
+		assert.equal(exchanges, 0);
+		cookies.set('google_oauth_state', state);
+		event.locals.user = { id: 'a', role: 'client' };
+		await assert.rejects(
+			calendarApi(event, ['calendar', 'google', 'callback'], 'GET', async () => ({})),
+			(e) => e.status === 303 && e.location === '/interviews?google=connected'
+		);
+		assert.equal(exchanges, 1);
+		assert.notEqual(
+			sqlite.prepare('SELECT refresh_token FROM calendar_connections').get().refresh_token,
+			'refresh-private'
+		);
+		cookies.set('google_oauth_state', state);
+		await assert.rejects(
+			calendarApi(event, ['calendar', 'google', 'callback'], 'GET', async () => ({})),
+			(e) => e.status === 400
+		);
+		assert.equal(exchanges, 1);
+	} finally {
+		globalThis.fetch = old;
+		sqlite.close();
+	}
+});
+
+test('job pages and interview edits remain available before the calendar migration', async () => {
+	const { sqlite, event } = fixture(false);
+	try {
+		event.params = { id: 'j' };
+		const page = await jobPageLoad(event);
+		assert.equal(page.job.id, 'j');
+		assert.equal(page.calendar.available, false);
+		assert.equal(page.interviews.length, 1);
+		assert.match(page.calendar.setup_message, /migrations/);
+		for (const role of ['staff', 'admin']) {
+			event.locals.user = { id: 'b', role };
+			const operatorPage = await jobPageLoad(event);
+			assert.equal(operatorPage.job.id, 'j');
+			assert.equal(operatorPage.candidate, null);
+			event.url.searchParams.set('candidate', 'a');
+			assert.equal((await jobPageLoad(event)).interviews.length, 1);
+			event.url.searchParams.delete('candidate');
+		}
+		event.locals.user = { id: 'a', role: 'client' };
+		await assert.rejects(
+			calendarApi(event, ['calendar', 'availability'], 'POST', async () => ({})),
+			(e) => e.status === 503
+		);
+		event.params = { path: 'interviews/i' };
+		event.request = new Request(event.url, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ state: 'completed' })
+		});
+		const updated = await handleApi(event);
+		assert.equal(updated.status, 200, await updated.text());
+		assert.equal(
+			sqlite.prepare("SELECT state FROM interviews WHERE id='i'").get().state,
+			'completed'
+		);
+		event.request = new Request(event.url, { method: 'DELETE' });
+		const removed = await handleApi(event);
+		assert.equal(removed.status, 200, await removed.text());
+		assert.equal(sqlite.prepare('SELECT count(*) n FROM interviews').get().n, 0);
+	} finally {
+		sqlite.close();
+	}
+});
+
+test('calendar fallback never hides unrelated database failures', async () => {
+	const { sqlite, event } = fixture();
+	try {
+		sqlite.exec('DROP TABLE interviews');
+		await assert.rejects(deleteGoogleInterview(event, 'i'));
+		sqlite.close();
+		await assert.rejects(calendarSummary(event));
+	} finally {
+		if (sqlite.isOpen) sqlite.close();
+	}
 });
