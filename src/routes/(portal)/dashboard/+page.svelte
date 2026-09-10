@@ -92,7 +92,9 @@
 				<h2>{client ? 'Your calendar' : 'Candidate interviews'}</h2>
 				<CalendarDays size={18} />
 			</div>
-			{#each upcoming.slice(0, 4) as i}<a class="agenda-item" href={`/jobs/${i.job_id}${client ? '' : '?candidate=' + i.user_id}`}
+			{#each upcoming.slice(0, 4) as i}<a
+					class="agenda-item"
+					href={`/jobs/${i.job_id}${client ? '' : '?candidate=' + i.user_id}`}
 					><span
 						><strong>{i.title}</strong>
 						<p>{i.company}{client ? '' : ' · ' + i.candidate_name}</p>

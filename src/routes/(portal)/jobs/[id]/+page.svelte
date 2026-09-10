@@ -1,4 +1,6 @@
 <script lang="ts">
+	import CandidateCalendar from '$lib/components/CandidateCalendar.svelte';
+	import GoogleInterview from '$lib/components/GoogleInterview.svelte';
 	import { goto } from '$app/navigation';
 	import TaskList from '$lib/components/TaskList.svelte';
 	import { invalidateAll } from '$app/navigation';
@@ -29,6 +31,7 @@
 	const api = (path: string, method = 'GET', body?: unknown) =>
 		baseApi(path + suffix, method, body);
 	let tab = $state('overview');
+	let canManageApplication = $derived(data.user.role === 'client' || !!data.candidate);
 	let busy = $state('');
 	let error = $state('');
 	let success = $state('');
@@ -40,9 +43,9 @@
 		error = '';
 		success = '';
 		try {
-			await fn();
+			const result = (await fn()) as { calendar_warning?: string } | undefined;
 			await invalidateAll();
-			success = message;
+			success = result?.calendar_warning || message;
 		} catch (e) {
 			error = (e as Error).message;
 		} finally {
@@ -80,8 +83,8 @@
 					goto(
 						`/jobs/${data.job.id}${e.currentTarget.value ? '?candidate=' + e.currentTarget.value : ''}`
 					)}
-				><option value="">My workspace</option>{#each data.candidates as c}<option value={c.id}
-						>{c.name} · {c.email}</option
+				><option value="">Select a candidate to manage their application</option
+				>{#each data.candidates as c}<option value={c.id}>{c.name} · {c.email}</option
 					>{/each}</select
 			></label
 		><a class="button secondary" href="/admin">Edit listing ↗</a>
@@ -104,7 +107,7 @@
 	<button
 		class:chosen={!!data.job.saved}
 		class="button secondary"
-		disabled={busy === 'status'}
+		disabled={busy === 'status' || !canManageApplication}
 		onclick={() => update({ saved: !data.job.saved })}
 		><Bookmark size={16} fill={data.job.saved ? 'currentColor' : 'none'} />{data.job.saved
 			? 'Saved'
@@ -125,6 +128,7 @@
 		<div class="detail-tabs" role="group" aria-label="Job page section">
 			{#each [{ id: 'overview', label: 'Job overview' }, { id: 'documents', label: 'Documents', count: data.attachments.length }, { id: 'activity', label: 'Activity history', count: data.activity.length }] as t}<button
 					class:active={tab === t.id}
+					disabled={!canManageApplication && t.id !== 'overview'}
 					onclick={() => (tab = t.id)}
 					>{t.label}{#if t.count}<span class="count">{t.count}</span>{/if}</button
 				>{/each}
@@ -256,118 +260,146 @@
 						</p>{/each}
 				</div>
 			</div>{/if}
-		<section class="panel mt-6">
-			<div class="section-heading">
-				<h2>Conversation</h2>
-				<span class="text-xs text-muted">Shared with your Space One team</span>
-			</div>
-			{#each data.comments as comment}<div class="py-4 border-b border-line">
-					<strong class="text-sm">{comment.author}</strong><small class="ml-2 text-muted"
-						>{comment.role} · {date(comment.created_at, data.user.timezone, true)}</small
-					>
-					<p class="whitespace-pre-line text-sm mt-2 mb-0">{comment.body}</p>
-					{#if comment.author_id === data.user.id}<button
-							class="text-button mt-2"
-							disabled={!!busy}
-							onclick={() =>
-								action(
-									'comment',
-									() => api(`comments/${comment.id}`, 'DELETE'),
-									'Comment removed.'
-								)}>Remove</button
-						>{/if}
-				</div>{:else}<p class="small-empty-text">
-					Ask a question, share a recruiter update, or leave context for your coordinator.
-				</p>{/each}
-			<form
-				class="mt-5"
-				onsubmit={async (e) => {
-					e.preventDefault();
-					const form = e.currentTarget as HTMLFormElement;
-					await action(
-						'comment',
-						() =>
-							api(`jobs/${data.job.id}/comments`, 'POST', { body: new FormData(form).get('body') }),
-						'Comment added.'
-					);
-					if (!error) form.reset();
-				}}
-			>
-				<label>Message<textarea name="body" required maxlength="5000" rows="3"></textarea></label
-				><button class="button primary" disabled={!!busy}>Post comment</button>
-			</form>
-		</section>
-		<div class="mt-6">
-			<TaskList items={data.tasks} jobId={data.job.id} candidate={data.candidate} />
-		</div>
-		<section class="panel interview-panel">
-			<div class="section-heading">
-				<h2>Interviews <span class="count">{data.interviews.length}</span></h2>
-				<button
-					class="text-button"
-					onclick={() => {
-						editing = undefined;
-						schedule = true;
-					}}><Plus size={16} />Add interview</button
-				>
-			</div>
-			{#each data.interviews as item}<div class="detail-interview">
-					<CalendarDays size={23} />
-					<div>
-						<strong>{item.title}</strong>
-						<p>
-							{date(item.starts_at, data.user.timezone, true)} – {new Intl.DateTimeFormat('en-US', {
-								hour: 'numeric',
-								minute: '2-digit',
-								timeZone: data.user.timezone
-							}).format(new Date(item.ends_at))}
-						</p>
-						<small>{data.user.timezone} · {item.state}</small>{#if item.location}<p>
-								{#if isUrl(item.location)}<a
-										class="inline-link"
-										href={item.location}
-										target="_blank"
-										rel="noopener noreferrer">Join meeting <ExternalLink size={12} /></a
-									>{:else}{item.location}{/if}
-							</p>{/if}{#if item.notes}<p class="interview-notes">{item.notes}</p>{/if}
-					</div>
-					<div class="interview-actions">
-                        {#if item.state === 'scheduled'}<button class="text-button" disabled={!!busy} onclick={() => action('complete', () => api(`interviews/${item.id}`, 'PATCH', {state: 'completed'}), 'Interview marked completed.')}>Mark completed</button>{/if}
-						<a
-							class="icon-button"
-							href={`/api/interviews/${item.id}/calendar`}
-							aria-label="Download calendar event"><Download size={16} /></a
-						><button
-							class="icon-button"
-							aria-label="Edit interview"
-							onclick={() => {
-								editing = item;
-								schedule = true;
-							}}><Pencil size={16} /></button
-						>{#if deleting === item.id}<button
-								class="text-button danger"
+		{#if canManageApplication}<section class="panel mt-6">
+				<div class="section-heading">
+					<h2>Conversation</h2>
+					<span class="text-xs text-muted">Shared with your Space One team</span>
+				</div>
+				{#each data.comments as comment}<div class="py-4 border-b border-line">
+						<strong class="text-sm">{comment.author}</strong><small class="ml-2 text-muted"
+							>{comment.role} · {date(comment.created_at, data.user.timezone, true)}</small
+						>
+						<p class="whitespace-pre-line text-sm mt-2 mb-0">{comment.body}</p>
+						{#if comment.author_id === data.user.id}<button
+								class="text-button mt-2"
 								disabled={!!busy}
 								onclick={() =>
 									action(
-										'delete',
-										() => api(`interviews/${item.id}`, 'DELETE'),
-										'Interview removed.'
+										'comment',
+										() => api(`comments/${comment.id}`, 'DELETE'),
+										'Comment removed.'
 									)}>Remove</button
-							><button class="text-button" onclick={() => (deleting = '')}>Cancel</button
-							>{:else}<button
-								class="icon-button"
-								aria-label="Remove interview"
-								onclick={() => (deleting = item.id)}><Trash2 size={16} /></button
 							>{/if}
-					</div>
-				</div>{:else}<div class="inline-empty">
-					<CalendarDays size={25} />
-					<div>
-						<strong>Got an invitation?</strong>
-						<p>Add the time, meeting link, and anything you need to prepare.</p>
-					</div>
-				</div>{/each}
-		</section>
+					</div>{:else}<p class="small-empty-text">
+						Ask a question, share a recruiter update, or leave context for your coordinator.
+					</p>{/each}
+				<form
+					class="mt-5"
+					onsubmit={async (e) => {
+						e.preventDefault();
+						const form = e.currentTarget as HTMLFormElement;
+						await action(
+							'comment',
+							() =>
+								api(`jobs/${data.job.id}/comments`, 'POST', {
+									body: new FormData(form).get('body')
+								}),
+							'Comment added.'
+						);
+						if (!error) form.reset();
+					}}
+				>
+					<label>Message<textarea name="body" required maxlength="5000" rows="3"></textarea></label
+					><button class="button primary" disabled={!!busy}>Post comment</button>
+				</form>
+			</section>
+			<div class="mt-6">
+				<TaskList items={data.tasks} jobId={data.job.id} candidate={data.candidate} />
+			</div>
+			<CandidateCalendar
+				calendar={data.calendar}
+				candidate={data.candidate || data.user.id}
+				own={!data.candidate || data.candidate === data.user.id}
+				jobId={data.job.id}
+				timezone={data.user.timezone}
+				meetings={data.interviews}
+			/>
+			<section class="panel interview-panel">
+				<div class="section-heading">
+					<h2>Interviews <span class="count">{data.interviews.length}</span></h2>
+					<button
+						class="text-button"
+						onclick={() => {
+							editing = undefined;
+							schedule = true;
+						}}><Plus size={16} />Add interview</button
+					>
+				</div>
+				{#each data.interviews as item}<div class="detail-interview">
+						<CalendarDays size={23} />
+						<div>
+							<strong>{item.title}</strong>
+							<p>
+								{date(item.starts_at, data.user.timezone, true)} – {new Intl.DateTimeFormat(
+									'en-US',
+									{
+										hour: 'numeric',
+										minute: '2-digit',
+										timeZone: data.user.timezone
+									}
+								).format(new Date(item.ends_at))}
+							</p>
+							<small>{data.user.timezone} · {item.state}</small>
+							<GoogleInterview
+								id={item.id}
+								connected={data.calendar.connected}
+								link={data.calendar.links.find((l) => l.interview_id === item.id)}
+							/>{#if item.location}<p>
+									{#if isUrl(item.location)}<a
+											class="inline-link"
+											href={item.location}
+											target="_blank"
+											rel="noopener noreferrer">Join meeting <ExternalLink size={12} /></a
+										>{:else}{item.location}{/if}
+								</p>{/if}{#if item.notes}<p class="interview-notes">{item.notes}</p>{/if}
+						</div>
+						<div class="interview-actions">
+							{#if item.state === 'scheduled'}<button
+									class="text-button"
+									disabled={!!busy}
+									onclick={() =>
+										action(
+											'complete',
+											() => api(`interviews/${item.id}`, 'PATCH', { state: 'completed' }),
+											'Interview marked completed.'
+										)}>Mark completed</button
+								>{/if}
+							<a
+								class="icon-button"
+								href={`/api/interviews/${item.id}/calendar`}
+								aria-label="Download calendar event"><Download size={16} /></a
+							><button
+								class="icon-button"
+								aria-label="Edit interview"
+								onclick={() => {
+									editing = item;
+									schedule = true;
+								}}><Pencil size={16} /></button
+							>{#if deleting === item.id}<button
+									class="text-button danger"
+									disabled={!!busy}
+									onclick={() =>
+										action(
+											'delete',
+											() => api(`interviews/${item.id}`, 'DELETE'),
+											'Interview removed.'
+										)}>Remove</button
+								><button class="text-button" onclick={() => (deleting = '')}>Cancel</button
+								>{:else}<button
+									class="icon-button"
+									aria-label="Remove interview"
+									onclick={() => (deleting = item.id)}><Trash2 size={16} /></button
+								>{/if}
+						</div>
+					</div>{:else}<div class="inline-empty">
+						<CalendarDays size={25} />
+						<div>
+							<strong>Got an invitation?</strong>
+							<p>Add the time, meeting link, and anything you need to prepare.</p>
+						</div>
+					</div>{/each}
+			</section>
+		{/if}
 	</section>
 	<aside class="detail-aside">
 		<section class="application-card">
@@ -378,28 +410,34 @@
 			<label
 				>Application status<select
 					value={data.job.status}
-					disabled={busy === 'status'}
+					disabled={busy === 'status' || !canManageApplication}
 					onchange={(e) => update({ status: e.currentTarget.value as Status })}
-					>{#each statuses.filter((s) => s !== 'saved' || data.job.status === 'saved') as s}<option value={s}>{statusLabel[s]}</option>{/each}</select
+					>{#each statuses.filter((s) => s !== 'saved' || data.job.status === 'saved') as s}<option
+							value={s}>{statusLabel[s]}</option
+						>{/each}</select
 				></label
 			><label
 				>Follow up on<input
 					type="date"
 					value={data.job.follow_up || ''}
-					disabled={busy === 'status'}
+					disabled={busy === 'status' || !canManageApplication}
 					onchange={(e) => update({ follow_up: e.currentTarget.value || null })}
 				/></label
 			><label
 				>Applied on<input
 					type="date"
 					value={data.job.applied_at?.slice(0, 10) || ''}
-					disabled={busy === 'status'}
+					disabled={busy === 'status' || !canManageApplication}
 					onchange={(e) =>
 						update({
 							applied_at: e.currentTarget.value ? `${e.currentTarget.value}T12:00:00.000Z` : null
 						})}
 				/></label
 			>
+			{#if !canManageApplication}<p class="form-footnote">
+					Select a candidate above to record their application, upload documents, or schedule an
+					interview.
+				</p>{/if}
 			<div class="apply-divider"></div>
 			<a
 				class="button primary full"

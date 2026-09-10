@@ -351,3 +351,56 @@ export const inquiries = sqliteTable(
 	},
 	(t) => [index('inquiry_status').on(t.status, t.created_at)]
 );
+
+export const calendarConnections = sqliteTable('calendar_connections', {
+	user_id: text()
+		.primaryKey()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	refresh_token: text().notNull(),
+	connected_at: text().notNull().default(now),
+	last_synced_at: text(),
+	last_error: text().notNull().default('')
+});
+export const calendarOAuth = sqliteTable('calendar_oauth', {
+	state_hash: text().primaryKey(),
+	user_id: text()
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	verifier: text().notNull(),
+	expires_at: integer().notNull()
+});
+export const calendarLinks = sqliteTable(
+	'calendar_links',
+	{
+		interview_id: text()
+			.primaryKey()
+			.references(() => interviews.id, { onDelete: 'cascade' }),
+		user_id: text()
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		event_id: text().notNull(),
+		etag: text().notNull().default(''),
+		meet_url: text().notNull().default(''),
+		google_url: text().notNull().default(''),
+		last_synced_at: text(),
+		last_error: text().notNull().default('')
+	},
+	(t) => [uniqueIndex('calendar_event_owner').on(t.user_id, t.event_id)]
+);
+export const availability = sqliteTable(
+	'availability',
+	{
+		id: text().primaryKey(),
+		user_id: text()
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		job_id: text().references(() => jobs.id, { onDelete: 'cascade' }),
+		starts_at: text().notNull(),
+		ends_at: text().notNull(),
+		note: text().notNull().default('')
+	},
+	(t) => [
+		index('availability_user_time').on(t.user_id, t.starts_at),
+		check('availability_bounds', sql`${t.ends_at}>${t.starts_at}`)
+	]
+);

@@ -83,9 +83,7 @@
 		<Check size={16} />{success}
 	</p>{/if}
 <div class="status-tabs standalone-tabs">
-	{#each ['jobs', 'applications'] as t}<button
-			class:active={tab === t}
-			onclick={() => (tab = t)}
+	{#each ['jobs', 'applications'] as t}<button class:active={tab === t} onclick={() => (tab = t)}
 			>{t[0].toUpperCase() + t.slice(1)}{#if t === 'jobs'}
 				<span>{data.overview.jobs.length}</span>{/if}</button
 		>{/each}
@@ -140,7 +138,9 @@
 			><tbody
 				>{#each data.overview.applications as item}<tr
 						><td><strong>{item.name}</strong><small>{item.email}</small></td><td
-							><a class="inline-link" href={`/jobs/${item.job_id}?candidate=${item.user_id}`}>{item.title}</a><small>{item.company}</small></td
+							><a class="inline-link" href={`/jobs/${item.job_id}?candidate=${item.user_id}`}
+								>{item.title}</a
+							><small>{item.company}</small></td
 						><td><StatusBadge status={item.status} /></td><td>{date(item.updated_at)}</td></tr
 					>{:else}<tr
 						><td colspan="4" class="small-empty-text"

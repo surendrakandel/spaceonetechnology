@@ -1,4 +1,9 @@
-APP_ORIGIN=http://localhost:8787
+APP_ORIGIN=http://localhost:5173
 EMAIL_FROM=invites@spaceonetechnology.com
 MAIL_MODE=local
 ALLOW_PUBLIC_SIGNUP=true
+
+# Optional Google Calendar integration. Never commit real values.
+# GOOGLE_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
+# GOOGLE_CLIENT_SECRET=your-google-client-secret
+# CALENDAR_ENCRYPTION_KEY=64-hex-characters-generated-with-openssl-rand-hex-32

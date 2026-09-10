@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CandidateCalendar from '$lib/components/CandidateCalendar.svelte';
 	import { ArrowLeft, ArrowUpRight, FileText } from '@lucide/svelte';
 	import { date, tags } from '$lib/client';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
@@ -33,7 +34,13 @@
 			<span>{stat[0]}</span><strong>{stat[1]}</strong>
 		</div>{/each}
 </div>
-<div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+<CandidateCalendar
+	calendar={data.calendar}
+	candidate={data.candidate.id}
+	timezone={data.user.timezone}
+	meetings={data.interviews}
+/>
+<div class="grid gap-6 mt-6 xl:grid-cols-[minmax(0,1fr)_320px]">
 	<div class="space-y-6">
 		<section class="panel">
 			<div class="section-heading">

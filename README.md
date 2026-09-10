@@ -100,3 +100,9 @@ For a different local port, use `TEST_BASE_URL=http://localhost:8788 npm run tes
 The suite covers schema constraints and upgrade preservation, the supplied scraper fragments, unsafe input and duplicates, client isolation, staff/admin boundaries, invitation lifecycle, private file access, candidate analytics, password reset, contact inquiries, all public sitemap pages, and legacy redirects.
 
 No production migration, remote deployment, live invitation, or DNS change is performed by these local checks. Real email delivery and production load should be validated in your deployment environment.
+
+## Calendar integration and production review
+
+See [Google Calendar setup](docs/GOOGLE-CALENDAR.md) for Google OAuth credentials, consent-screen configuration, encrypted token storage, the new D1 migration, and the live acceptance workflow. The current configured production hostname is `candidate.spaceone.tech`.
+
+Application totals use submission history/status and recorded interviews, including legacy records without `applied_at`. Operator totals and shared interviews cover client accounts rather than the operator's personal applications. Interview totals count rounds explicitly marked completed. See [production review](docs/PRODUCTION-REVIEW.md) for verification and remaining deployment steps.

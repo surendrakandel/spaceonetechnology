@@ -631,6 +631,10 @@ export const standardPages: PublicPage[] = [
 				body: 'Information supports account access, invitations, job coordination, and operational reporting. Session cookies keep you signed in. This application does not include advertising trackers. Transactional emails are used for invitations and account recovery.'
 			},
 			{
+				title: 'Google Calendar and shared availability',
+				body: 'Connecting Google Calendar is optional. With your permission, Space One stores an encrypted authorization token, synchronizes interviews you link to the workspace, and retrieves busy periods from your primary calendar. Authorized staff can see linked interviews and availability you choose to share. Unrelated event titles, attendees, and descriptions are not shared with staff or stored as candidate records. You can disconnect in the interview calendar; this removes the stored connection and event links without deleting existing Google events. Google data is used only for calendar coordination, not advertising or AI model training.'
+			},
+			{
 				title: 'Your choices and requests',
 				body: 'You can update your profile and remove uploaded documents from the workspace. To request an account export, account closure, or help with information you cannot change, contact Space One using the contact page. Records may need to be retained for applicable operational or legal requirements.'
 			}

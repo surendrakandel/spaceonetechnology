@@ -20,10 +20,11 @@
 				? 'Local invitation created. Open the preview link to test onboarding.'
 				: method === 'DELETE'
 					? 'Invitation revoked.'
-					: 'Invitation sent. The link is valid for seven days.';
+					: 'Invitation accepted for delivery. The link is valid for seven days.';
 			await invalidateAll();
 		} catch (e) {
 			error = (e as Error).message;
+			await invalidateAll();
 		} finally {
 			busy = false;
 			revoke = '';

@@ -23,7 +23,11 @@
 	let error = $state('');
 	let links = $derived([
 		{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-		{ href: '/jobs', label: data.user.role === 'client' ? 'My opportunities' : 'Jobs', icon: BriefcaseBusiness },
+		{
+			href: '/jobs',
+			label: data.user.role === 'client' ? 'My opportunities' : 'Jobs',
+			icon: BriefcaseBusiness
+		},
 		{ href: '/interviews', label: 'Interviews', icon: CalendarDays },
 		{ href: '/documents', label: 'Documents', icon: Files },
 		...(data.user.role !== 'client'

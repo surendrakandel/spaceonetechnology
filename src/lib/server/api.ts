@@ -1,5 +1,6 @@
-import { error, isHttpError, json, type RequestEvent } from '@sveltejs/kit';
+import { error, isHttpError, isRedirect, json, type RequestEvent } from '@sveltejs/kit';
 import { z } from 'zod';
+import { calendarApi, syncInterview, deleteGoogleInterview } from './google-calendar';
 import { accountAuth, invitationInfo, phoneSchema } from './account';
 import { operations } from './operations';
 import { workspaceApi } from './workspace';
@@ -32,12 +33,19 @@ import { statusLabel } from '$lib/types';
 
 function interviewApplicationUpdate(event: RequestEvent, appId: string, state: string) {
 	const progressing = state !== 'cancelled';
-	return db(event).update(applications).set({
-		status: progressing ? sql`CASE WHEN ${applications.status} IN ('to_apply','saved','applied','processing') THEN 'interview' ELSE ${applications.status} END` : undefined,
-		applied_at: progressing ? sql`COALESCE(${applications.applied_at},strftime('%Y-%m-%dT%H:%M:%fZ','now'))` : undefined,
-		updated_at: new Date().toISOString(),
-		version: sql`${applications.version}+1`
-	}).where(eq(applications.id, appId));
+	return db(event)
+		.update(applications)
+		.set({
+			status: progressing
+				? sql`CASE WHEN ${applications.status} IN ('to_apply','saved','applied','processing') THEN 'interview' ELSE ${applications.status} END`
+				: undefined,
+			applied_at: progressing
+				? sql`COALESCE(${applications.applied_at},strftime('%Y-%m-%dT%H:%M:%fZ','now'))`
+				: undefined,
+			updated_at: new Date().toISOString(),
+			version: sql`${applications.version}+1`
+		})
+		.where(eq(applications.id, appId));
 }
 
 async function readJson(event: RequestEvent) {
@@ -54,6 +62,7 @@ export async function handleApi(event: RequestEvent) {
 	try {
 		return await route(event);
 	} catch (e) {
+		if (isRedirect(e)) throw e;
 		if (e instanceof z.ZodError)
 			return json(
 				{ message: e.issues.map((i) => `${i.path.join('.') || 'Input'}: ${i.message}`).join('; ') },
@@ -119,6 +128,7 @@ async function route(event: RequestEvent): Promise<Response> {
 	const database = db(event);
 	if (method !== 'GET') await rateLimit(event, `write:${user.id}`, 180);
 	const extended =
+		(await calendarApi(event, path, method, () => readJson(event))) ||
 		(await operations(event, path, method, () => readJson(event))) ||
 		(await workspaceApi(event, path, method, () => readJson(event)));
 	if (extended) return extended;
@@ -152,8 +162,14 @@ async function route(event: RequestEvent): Promise<Response> {
 			const previous = await getJob(event, id);
 			const appId = await application(event, id);
 			const status = data.status ?? previous.status;
-			if (data.applied_at === null && ['applied', 'processing', 'interview', 'offer', 'rejected'].includes(status))
-				error(400, 'Choose To apply before clearing the submission date, or keep the date for this application status.');
+			if (
+				data.applied_at === null &&
+				['applied', 'processing', 'interview', 'offer', 'rejected'].includes(status)
+			)
+				error(
+					400,
+					'Choose To apply before clearing the submission date, or keep the date for this application status.'
+				);
 			const applied =
 				data.applied_at !== undefined
 					? data.applied_at
@@ -236,10 +252,18 @@ async function route(event: RequestEvent): Promise<Response> {
 			});
 		if (method === 'PATCH') {
 			const { id: _id, application_id: _appId, ...current } = item;
-			const patch = z.object({
-				title: z.unknown().optional(), starts_at: z.unknown().optional(), ends_at: z.unknown().optional(),
-				timezone: z.unknown().optional(), state: z.unknown().optional(), location: z.unknown().optional(), notes: z.unknown().optional()
-			}).strict().parse(await readJson(event));
+			const patch = z
+				.object({
+					title: z.unknown().optional(),
+					starts_at: z.unknown().optional(),
+					ends_at: z.unknown().optional(),
+					timezone: z.unknown().optional(),
+					state: z.unknown().optional(),
+					location: z.unknown().optional(),
+					notes: z.unknown().optional()
+				})
+				.strict()
+				.parse(await readJson(event));
 			const data = interviewSchema.parse({ ...current, ...patch });
 			await database.batch([
 				database.update(meetings).set(data).where(eq(meetings.id, item.id)),
@@ -251,9 +275,10 @@ async function route(event: RequestEvent): Promise<Response> {
 					`Interview updated: ${data.title} (${data.state})`
 				)
 			]);
-			return json({ ok: true });
+			return json({ ok: true, ...(await syncInterview(event, item.id, false, true)) });
 		}
 		if (method === 'DELETE') {
+			await deleteGoogleInterview(event, item.id);
 			await database.batch([
 				database.delete(meetings).where(eq(meetings.id, item.id)),
 				interviewApplicationUpdate(event, item.application_id, 'cancelled'),

@@ -151,13 +151,14 @@
 	<div class="stat">
 		<div><span>Applications sent</span><ArrowUpRight size={18} /></div>
 		<strong>{String(applied).padStart(2, '0')}</strong><small
-			>{data.user.role === 'client' ? 'Your recorded submissions' : 'Across all client applications'}</small
+			>{data.user.role === 'client'
+				? 'Your recorded submissions'
+				: 'Across all client applications'}</small
 		>
 	</div>
 	<div class="stat">
 		<div><span>Upcoming interviews</span><CalendarDays size={17} /></div>
-		<strong>{String(data.metrics.upcoming).padStart(2, '0')}</strong
-		><small
+		<strong>{String(data.metrics.upcoming).padStart(2, '0')}</strong><small
 			>{upcoming[0]
 				? `Next: ${date(upcoming[0].starts_at, data.user.timezone, true)}`
 				: 'Room for your next conversation'}</small
@@ -165,8 +166,9 @@
 	</div>
 	<div class="stat accent-stat">
 		<div><span>Offers received</span><Check size={18} /></div>
-		<strong>{String(data.metrics.offers).padStart(2, '0')}</strong
-		><small>Good things are taking shape</small>
+		<strong>{String(data.metrics.offers).padStart(2, '0')}</strong><small
+			>Good things are taking shape</small
+		>
 	</div>
 </div>
 {#if error}<p class="alert error" role="alert">{error}</p>{/if}
@@ -310,15 +312,15 @@
 									: `Added ${date(job.created_at)}`}</small
 						>
 						<div class="job-actions">
-							<button
-								class:saved={!!job.saved}
-								class="icon-button"
-								disabled={busy === job.id}
-								aria-label={job.saved ? 'Unsave job' : 'Save job'}
-								aria-pressed={!!job.saved}
-								onclick={() => save(job)}
-								><Bookmark size={17} fill={job.saved ? 'currentColor' : 'none'} /></button
-							><a class="job-open" href={`/jobs/${job.id}`} aria-label={`Open ${job.title}`}
+							{#if data.user.role === 'client'}<button
+									class:saved={!!job.saved}
+									class="icon-button"
+									disabled={busy === job.id}
+									aria-label={job.saved ? 'Unsave job' : 'Save job'}
+									aria-pressed={!!job.saved}
+									onclick={() => save(job)}
+									><Bookmark size={17} fill={job.saved ? 'currentColor' : 'none'} /></button
+								>{/if}<a class="job-open" href={`/jobs/${job.id}`} aria-label={`Open ${job.title}`}
 								><ArrowUpRight size={18} /></a
 							>
 						</div>
@@ -341,7 +343,7 @@
 								workplace = 'all';
 								interviewFilter = 'all';
 								savedOnly = false;
-							publication = 'all';
+								publication = 'all';
 								persist();
 							}}>Clear filters</button
 						>{:else if data.user.role !== 'client'}<a class="button primary" href="/admin"
@@ -360,7 +362,9 @@
 				<h3>Coming up</h3>
 				<CalendarDays size={17} />
 			</div>
-			{#each upcoming as interview}<a class="agenda-item" href={`/jobs/${interview.job_id}${data.user.role === 'client' ? '' : '?candidate=' + interview.user_id}`}
+			{#each upcoming as interview}<a
+					class="agenda-item"
+					href={`/jobs/${interview.job_id}${data.user.role === 'client' ? '' : '?candidate=' + interview.user_id}`}
 					><div class="calendar-square">
 						<span
 							>{new Intl.DateTimeFormat('en-US', {
@@ -376,7 +380,11 @@
 					</div>
 					<div>
 						<strong>{interview.title}</strong>
-						<p>{interview.company}{data.user.role !== 'client' ? ' · ' + interview.candidate_name : ''}</p>
+						<p>
+							{interview.company}{data.user.role !== 'client'
+								? ' · ' + interview.candidate_name
+								: ''}
+						</p>
 						<small>{date(interview.starts_at, data.user.timezone, true)}</small>
 					</div></a
 				>{:else}<div class="small-empty">

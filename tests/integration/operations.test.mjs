@@ -246,6 +246,95 @@ test('Roles, invitations, imports and candidate operations', { timeout: 240000 }
 		assert.equal(candidate.applications[0].job_id, jobId);
 		assert.equal(ok(await staff.req(`jobs/${jobId}`)).job.application_count, 1);
 	});
+	await t.test(
+		'metrics retain submissions after status changes and share the client calendar with operators',
+		async () => {
+			const own = ok(await alice.req('dashboard')).stats;
+			assert.equal(own.applied, 1);
+			assert.equal(own.interviews, 1);
+			const shared = ok(await staff.req('interviews')).interviews;
+			assert.ok(shared.some((i) => i.user_id === aliceId && i.state === 'completed'));
+			assert.equal(ok(await bob.req('interviews')).interviews.length, 0);
+			let j = ok(await alice.req(`jobs/${jobId}`)).job;
+			assert.equal(
+				(
+					await alice.req(`jobs/${jobId}/application`, 'PATCH', {
+						version: j.version,
+						applied_at: null
+					})
+				).status,
+				400
+			);
+			ok(
+				await alice.req(`jobs/${jobId}/application`, 'PATCH', {
+					version: j.version,
+					status: 'withdrawn'
+				})
+			);
+			assert.equal(ok(await alice.req('dashboard')).stats.applied, 1);
+			// Legacy applications with a status but no timestamp still count.
+			sql(
+				`UPDATE applications SET status='rejected',applied_at=NULL WHERE user_id='${aliceId}' AND job_id='${jobId}'`
+			);
+			assert.equal(ok(await staff.req(`candidates/${aliceId}`)).candidate.applied, 1);
+			const meeting = shared.find((i) => i.user_id === aliceId);
+			ok(await alice.req(`interviews/${meeting.id}`, 'PATCH', { state: 'scheduled' }));
+			assert.equal(ok(await alice.req('dashboard')).stats.interviews, 0);
+			ok(await staff.req(`interviews/${meeting.id}`, 'PATCH', { state: 'completed' }));
+			assert.equal(ok(await alice.req('dashboard')).stats.interviews, 1);
+			assert.equal(
+				(await bob.req(`interviews/${meeting.id}`, 'PATCH', { state: 'completed' })).status,
+				404
+			);
+		}
+	);
+	await t.test(
+		'availability is candidate-owned and scoped to the job; Google OAuth requires valid state',
+		async () => {
+			const from = new Date(Date.now() + 86400000).toISOString(),
+				to = new Date(Date.now() + 90000000).toISOString();
+			const slot = ok(
+				await alice.req('calendar/availability', 'POST', {
+					job_id: jobId,
+					starts_at: from,
+					ends_at: to,
+					note: 'Video preferred'
+				}),
+				201
+			);
+			const summary = ok(await staff.req(`calendar/summary?candidate=${aliceId}`));
+			assert.equal(summary.slots.length, 1);
+			assert.equal(summary.slots[0].id, slot.id);
+			assert.equal('refresh_token' in (summary.connection || {}), false);
+			assert.equal((await bob.req(`calendar/summary?candidate=${aliceId}`)).status, 403);
+			assert.equal(
+				(
+					await staff.req(`calendar/availability?candidate=${aliceId}`, 'POST', {
+						starts_at: from,
+						ends_at: to
+					})
+				).status,
+				403
+			);
+			ok(await bob.req(`calendar/availability/${slot.id}`, 'DELETE'));
+			assert.equal(ok(await alice.req('calendar/summary')).slots.length, 1);
+			assert.equal(
+				(await alice.req('calendar/google/callback?state=forged&code=forged')).status,
+				400
+			);
+			assert.equal(
+				(
+					await alice.req('calendar/refresh', 'POST', {
+						from,
+						to: new Date(Date.now() + 60 * 86400000).toISOString()
+					})
+				).status,
+				400
+			);
+			ok(await alice.req(`calendar/availability/${slot.id}`, 'DELETE'));
+			assert.equal(ok(await alice.req('calendar/summary')).slots.length, 0);
+		}
+	);
 	await t.test('public contact form reaches the staff inquiry queue', async () => {
 		ok(
 			await client().req('contact', 'POST', {

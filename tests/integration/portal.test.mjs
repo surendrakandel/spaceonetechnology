@@ -242,6 +242,7 @@ test('Complete portal workflow on Cloudflare local D1 and R2', { timeout: 180000
 		);
 	});
 	await t.test('import is validated, idempotent and preserves client applications', async () => {
+		const beforeImport = (await alice.req(`jobs/${jobId}`)).data.job.status;
 		assert.equal(
 			(
 				await admin.req('admin/import', 'POST', {
@@ -259,7 +260,7 @@ test('Complete portal workflow on Cloudflare local D1 and R2', { timeout: 180000
 				.status,
 			200
 		);
-		assert.equal((await alice.req(`jobs/${jobId}`)).data.job.status, 'applied');
+		assert.equal((await alice.req(`jobs/${jobId}`)).data.job.status, beforeImport);
 		assert.equal(
 			(await admin.req('admin/assignments', 'POST', { job_id: jobId, user_ids: [] })).status,
 			200

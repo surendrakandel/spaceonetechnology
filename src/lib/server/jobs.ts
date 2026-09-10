@@ -33,7 +33,7 @@ function queryJobs(event: RequestEvent, id?: string, subjectId?: string) {
 	return database
 		.select({
 			...publicJobColumns(),
-			application_count: sql<number>`(SELECT COUNT(*) FROM applications counts JOIN users applicants ON applicants.id=counts.user_id WHERE counts.job_id=${jobs.id} AND applicants.access_role='client' AND ${submitted({id: sql`counts.id`, status: sql`counts.status`, applied_at: sql`counts.applied_at`})})`,
+			application_count: sql<number>`(SELECT COUNT(*) FROM applications counts JOIN users applicants ON applicants.id=counts.user_id WHERE counts.job_id=${jobs.id} AND applicants.access_role='client' AND ${submitted({ id: sql`counts.id`, status: sql`counts.status`, applied_at: sql`counts.applied_at` })})`,
 			status: sql<Status>`COALESCE(${applications.status},'to_apply')`,
 			saved: sql<number>`COALESCE(${applications.saved},0)`,
 			follow_up: applications.follow_up,
@@ -78,6 +78,8 @@ export async function application(event: RequestEvent, jobId: string) {
 	const job = await getJob(event, jobId);
 	const user = requireUser(event);
 	const subjectId = await subjectUserId(event);
+	if (user.role !== 'client' && subjectId === user.id)
+		error(400, 'Select a candidate before recording application activity.');
 	const database = db(event);
 	if (!job.application_id)
 		await database
@@ -152,7 +154,9 @@ export async function interviews(event: RequestEvent) {
 		.innerJoin(applications, eq(applications.id, interviewTable.application_id))
 		.innerJoin(jobs, eq(jobs.id, applications.job_id))
 		.innerJoin(users, eq(users.id, applications.user_id))
-		.where(user.role === 'client' ? eq(applications.user_id, user.id) : eq(users.access_role, 'client'))
+		.where(
+			user.role === 'client' ? eq(applications.user_id, user.id) : eq(users.access_role, 'client')
+		)
 		.orderBy(asc(interviewTable.starts_at));
 }
 export async function documents(event: RequestEvent) {
