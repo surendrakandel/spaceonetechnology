@@ -131,9 +131,9 @@
 					</p>
 				</div>
 			{:else if p.kind === 'careers' || p.slug === 'about'}<div
-					class="flex items-center gap-4 lg:flex-col lg:items-start lg:justify-self-end lg:pb-3"
+					class="flex flex-wrap items-center gap-4 lg:flex-col lg:items-start lg:justify-self-end lg:pb-3"
 				>
-					<div class="flex -space-x-3" aria-hidden="true">
+					<div class="flex shrink-0 -space-x-3" aria-hidden="true">
 						{#each media.avatars.slice(0, 4) as avatar}<img
 								src={avatar}
 								alt=""

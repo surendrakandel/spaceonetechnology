@@ -100,14 +100,14 @@
 						href="/careers">Find your next role <ArrowRight size={16} /></a
 					>
 				</div>
-				<div class="mt-10 flex items-center gap-4 lg:mt-12">
-					<div class="flex -space-x-3" aria-hidden="true">
+				<div class="mt-10 flex flex-wrap items-center gap-4 lg:mt-12">
+					<div class="flex shrink-0 -space-x-3" aria-hidden="true">
 						{#each media.avatars.slice(0, 4) as avatar, i}<img
 								src={avatar}
 								alt=""
 								width="48"
 								height="48"
-								class="h-11 w-11 rounded-full border-[3px] border-canvas bg-sage object-cover sm:h-12 sm:w-12"
+								class="h-11 w-11 shrink-0 rounded-full border-[3px] border-canvas bg-sage object-cover sm:h-12 sm:w-12"
 								style={`z-index:${4 - i}`}
 							/>{/each}
 					</div>

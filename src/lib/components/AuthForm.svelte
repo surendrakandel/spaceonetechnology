@@ -34,7 +34,7 @@
 
 <div class="auth-layout">
 	<AccountStory />
-	<section class="auth-form-wrap">
+	<main class="auth-form-wrap">
 		<div class="auth-top">
 			{mode === 'login' ? 'New to the workspace?' : 'Already have an account?'}<a
 				href={mode === 'login' ? '/client/signup' : '/client/login'}
@@ -162,7 +162,7 @@
 				</form>{/if}
 		</div>
 		<div class="auth-bottom"><Check size={14} /> A dedicated space for your job search.</div>
-	</section>
+	</main>
 </div>
 
 <style>

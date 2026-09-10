@@ -25,3 +25,11 @@ Added original media URLs from the supplied HTML:
 - Editorial artwork: `https://spaceonetechnology.com/wp-content/uploads/2025/08/71-project-{2…4}-1024x673.webp`
 
 Portraits are decorative and do not imply named employees, endorsements, ratings, or verified customer counts. The client workspace illustration describes existing functionality without displaying real candidate data. Service details use keyboard-operable buttons with expanded state and associated panels. Header and footer logo paths are root-relative so nested routes load the same asset.
+
+## Public-page design extension
+
+The homepage visual language extends to the service directory and nine service pages, company pages, careers and preparation guide, contact form, engagement models, nine product concepts, nine insight articles, and policy pages. Account access screens share an illustrated side panel. Styling is scoped to public layouts and account components so portal layouts can be developed separately.
+
+Headlines use the existing DM Sans with restrained Georgia italic emphasis. Original hosted image URLs are retained. Contact links carry the relevant inquiry topic into the form. Article contents use native expandable navigation, and avatar groups wrap on narrow screens.
+
+Validation: Svelte diagnostics and the Cloudflare production build; existing public-route integration checks covering sitemap pages, legacy redirects, and protected routes; browser review at desktop and phone widths. This design change needs no database migration or new environment variables.
