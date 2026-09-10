@@ -30,7 +30,7 @@
 		"cpu_ms": 30000
 	},
 	"vars": {
-		"APP_ORIGIN": "https://candidate.spaceone.tech",
+		"APP_ORIGIN": "https://spaceone.tech",
 		"EMAIL_FROM": "invites@spaceonetechnology.com",
 		"MAIL_MODE": "cloudflare",
 		"ALLOW_PUBLIC_SIGNUP": "true"
