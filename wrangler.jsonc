@@ -41,7 +41,9 @@
 		"EMAIL_FROM": "ops@spaceone.tech",
 		"MAIL_MODE": "cloudflare",
 		"ALLOW_PUBLIC_SIGNUP": "true",
-		"GOOGLE_CLIENT_ID": "527741143784-tbfjogcvu4516jnickutc4b95qjaopro.apps.googleusercontent.com"
+		"GOOGLE_CLIENT_ID": "527741143784-tbfjogcvu4516jnickutc4b95qjaopro.apps.googleusercontent.com",
+		"GOOGLE_CLIENT_SECRET": "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"
+
 	},
 	"send_email": [
 		{
