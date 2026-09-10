@@ -42,7 +42,7 @@ function client() {
 function sql(command) {
 	const result = spawnSync(
 		'npx',
-		['wrangler', 'd1', 'execute', 'space-one-clients', '--local', '--command', command],
+		['wrangler', 'd1', 'execute', 'space-one-clients', '--local', ...(process.env.TEST_D1_PERSIST ? ['--persist-to', process.env.TEST_D1_PERSIST] : []), '--command', command],
 		{ encoding: 'utf8' }
 	);
 	assert.equal(result.status, 0, result.stderr);

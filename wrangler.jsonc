@@ -3,7 +3,9 @@
 	"name": "spaceonetechnology",
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"compatibility_date": "2026-09-09",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
@@ -39,9 +41,12 @@
 		"EMAIL_FROM": "ops@spaceone.tech",
 		"MAIL_MODE": "cloudflare",
 		"ALLOW_PUBLIC_SIGNUP": "true",
-		"GOOGLE_CLIENT_ID": "527741143784-tbfjogcvu4516jnickutc4b95qjaopro.apps.googleusercontent.com",
-		"GOOGLE_CLIENT_SECRET": "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",
-		"CALENDAR_ENCRYPTION_KEY": ""
+		"GOOGLE_CLIENT_ID": "527741143784-tbfjogcvu4516jnickutc4b95qjaopro.apps.googleusercontent.com"
 	},
-	"send_email": [{ "name": "EMAIL", "remote": true }]
+	"send_email": [
+		{
+			"name": "EMAIL",
+			"remote": true
+		}
+	]
 }
