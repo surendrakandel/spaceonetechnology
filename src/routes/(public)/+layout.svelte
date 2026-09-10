@@ -65,7 +65,7 @@
 				<img
 					src="/images/spaceonetechnology-logo.png"
 					alt="Space One Technology"
-					class="h-auto w-auto max-w-[200px] object-contain"
+					class="h-auto w-auto max-w-[175px] object-contain"
 				/>
 
 				<span class="sr-only">
@@ -134,7 +134,7 @@
 					<img
 						src="/images/spaceonetechnology-logo.png"
 						alt="Space One Technology"
-						class="h-auto max-w-[200px] w-auto"
+						class="h-auto max-w-[175px] w-auto"
 					/>
 
 					<span class="sr-only">

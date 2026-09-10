@@ -60,7 +60,7 @@
 				href="/"
 				aria-label="Space One Technology home"
 			>
-				<img src="./images/spaceonetechnology-logo.png" alt="Space One Technology" class="h-auto max-w-[200px]" />
+				<img src="./images/spaceonetechnology-logo.png" alt="Space One Technology" class="h-auto max-w-[175px]" />
 
 				<span class="sr-only">
 					spaceonetechnology<span class="brand-dot">.</span>
