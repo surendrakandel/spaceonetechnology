@@ -39,7 +39,7 @@ Passwords require 12–128 characters. Roles and account status cannot be change
 
 Staff/admin can add `?candidate={clientId}` to a job, application, note, comment, upload, resume-copy, interview-create, task, or profile-library request. The server validates that the subject is a client and requires operator access. Clients cannot select another user. Operators may read/update candidate interview and file resources by ID; clients remain restricted to their own records.
 
-Statuses: `to_apply`, `saved`, `applied`, `processing`, `interview`, `offer`, `rejected`, `withdrawn`. `saved` boolean is an independent bookmark. Version conflicts return 409; refresh before retrying. `follow_up` is an ISO calendar date or null; `applied_at` is a UTC ISO timestamp or null. Moving to an applied/processing/interview/offer/rejected state records an applied date if absent, unless explicitly supplied.
+Statuses: `to_apply`, `saved`, `applied`, `processing`, `interview`, `offer`, `rejected`, `withdrawn`. `saved` boolean is an independent bookmark. Version conflicts return 409; refresh before retrying. `follow_up` is an ISO calendar date or null; `applied_at` is a UTC ISO timestamp or null. Moving to an applied/processing/interview/offer/rejected state records an applied date if absent, unless a valid explicit timestamp is supplied. Clearing that date while in a submitted status returns 400.
 
 ## Documents, interviews, tasks
 
@@ -92,15 +92,15 @@ The current board fetches the visible catalog and paginates rendered rows. API c
 
 ## Google Calendar and availability
 
-| Method | Path under `/api` | Access | Behavior |
-| --- | --- | --- | --- |
-| POST | `/calendar/google/connect` | Signed in | Returns the Google authorization URL; owner-only connection, state cookie and PKCE |
-| GET | `/calendar/google/callback` | Signed in, same browser | Consumes single-use OAuth state and saves encrypted refresh token |
-| DELETE | `/calendar/google` | Connection owner | Revokes authorization and removes local Google connection/links |
-| GET | `/calendar/summary?candidate={id}` | Owner or operator | Connection health, offered availability, linked event URLs; never tokens |
-| POST | `/calendar/availability` | Owner | `{job_id?: string|null, starts_at, ends_at, note?}`; future windows, maximum 24 hours each |
-| DELETE | `/calendar/availability/{id}` | Owner | Removes offered availability |
-| POST | `/calendar/refresh?candidate={id}` | Owner or operator | `{from,to}` ISO timestamps, maximum 32 days; returns busy intervals and refreshes up to 100 linked interviews within that range |
-| POST | `/calendar/interviews/{id}` | Owner or operator | `{create_meet?:boolean,resolution?:'portal'|'google'}`; creates/updates a linked Google event or resolves conflicting versions |
+| Method | Path under `/api`                  | Access                  | Behavior                                                                                                                        |
+| ------ | ---------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/calendar/google/connect`         | Signed in               | Returns the Google authorization URL; owner-only connection, state cookie and PKCE                                              |
+| GET    | `/calendar/google/callback`        | Signed in, same browser | Consumes single-use OAuth state and saves encrypted refresh token                                                               |
+| DELETE | `/calendar/google`                 | Connection owner        | Revokes authorization and removes local Google connection/links                                                                 |
+| GET    | `/calendar/summary?candidate={id}` | Owner or operator       | Connection health, offered availability, linked event URLs; never tokens                                                        |
+| POST   | `/calendar/availability`           | Owner                   | `{job_id?: string                                                                                                               | null, starts_at, ends_at, note?}`; future windows, maximum 24 hours each           |
+| DELETE | `/calendar/availability/{id}`      | Owner                   | Removes offered availability                                                                                                    |
+| POST   | `/calendar/refresh?candidate={id}` | Owner or operator       | `{from,to}` ISO timestamps, maximum 32 days; returns busy intervals and refreshes up to 100 linked interviews within that range |
+| POST   | `/calendar/interviews/{id}`        | Owner or operator       | `{create_meet?:boolean,resolution?:'portal'                                                                                     | 'google'}`; creates/updates a linked Google event or resolves conflicting versions |
 
 Interview PATCH also accepts `{state:'completed'}` by itself. A saved interview edit may return `calendar_warning` if Google sync failed; the local record remains saved and the link's error is visible on the job page. DELETE first removes a linked Google event and rejects if that operation fails. Clients must explicitly connect Google; staff cannot authorize a client's account. No attendee invitations are sent automatically. Read `docs/GOOGLE-CALENDAR.md` for scope, sync behavior, and setup.

@@ -2,7 +2,7 @@
 
 A complete public website and authenticated candidate workspace, built with **SvelteKit 2, Svelte 5, TypeScript, Tailwind CSS 4, Drizzle ORM, Cloudflare D1, and private R2 storage**. One Cloudflare Worker serves the pages and JSON APIs. There is no separate application server.
 
-The default production origin is **https://clients.spaceonetechnology.com**. Its `/` route is the public landing page, `/client/*` contains account access, and every successful login opens `/dashboard`. Change `APP_ORIGIN` if you choose another hostname. Original Space One photos and video retain their original URLs.
+The configured production origin is **https://spaceone.tech**. Its `/` route is the public landing page, `/client/*` contains account access, and every successful login opens `/dashboard`. Change `APP_ORIGIN` if you choose another hostname. Original Space One photos and video retain their original URLs.
 
 ## What is included
 
@@ -71,7 +71,7 @@ The next request picks up the administrator role. Do not use demo credentials in
 | `FILES`               | R2 binding                       | Existing `space-one-tech-client-files` private bucket        |
 | `EMAIL`               | Cloudflare Email Service binding | `send_email` binding in Wrangler                             |
 | `ASSETS`              | Worker assets binding            | Generated SvelteKit assets                                   |
-| `APP_ORIGIN`          | Variable                         | `https://clients.spaceonetechnology.com` or your chosen host |
+| `APP_ORIGIN`          | Variable                         | `https://spaceone.tech` or your chosen host |
 | `EMAIL_FROM`          | Variable                         | Address on your verified sending domain                      |
 | `MAIL_MODE`           | Variable                         | `cloudflare`; `local` is restricted to loopback origins      |
 | `ALLOW_PUBLIC_SIGNUP` | Variable                         | `true` or `false`                                            |
@@ -103,6 +103,6 @@ No production migration, remote deployment, live invitation, or DNS change is pe
 
 ## Calendar integration and production review
 
-See [Google Calendar setup](docs/GOOGLE-CALENDAR.md) for Google OAuth credentials, consent-screen configuration, encrypted token storage, the new D1 migration, and the live acceptance workflow. The current configured production hostname is `candidate.spaceone.tech`.
+See [Google Calendar setup](docs/GOOGLE-CALENDAR.md) for Google OAuth credentials, consent-screen configuration, encrypted token storage, the new D1 migration, and the live acceptance workflow. The current configured production hostname is `spaceone.tech`.
 
 Application totals use submission history/status and recorded interviews, including legacy records without `applied_at`. Operator totals and shared interviews cover client accounts rather than the operator's personal applications. Interview totals count rounds explicitly marked completed. See [production review](docs/PRODUCTION-REVIEW.md) for verification and remaining deployment steps.

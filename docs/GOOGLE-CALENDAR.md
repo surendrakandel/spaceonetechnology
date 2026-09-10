@@ -1,28 +1,27 @@
 # Google Calendar & Meet setup
 
-The portal works without Google configured: clients can record interviews and share availability. Connecting Google adds primary-calendar busy times, linked interview events, and optional Meet links. The current production origin in Wrangler is `https://candidate.spaceone.tech`.
+The portal works without Google configured: clients can record interviews and share availability. Connecting Google adds primary-calendar busy times, linked interview events, and optional Meet links. The current production origin in Wrangler is `https://spaceone.tech`.
 
 ## Google Cloud
 
 1. Create/select your Google Cloud project and enable **Google Calendar API**.
 2. Configure Google Auth Platform branding, support email, audience, authorized domains, and privacy policy. Use your own company/project details. For external clients use an External audience. While Testing, add each test account explicitly; testing-mode refresh tokens may expire after seven days. Complete Google's applicable verification and publish the consent screen before broad client rollout.
 3. Create an OAuth client of type **Web application**. Register this exact authorized redirect URI:
-   `https://candidate.spaceone.tech/api/calendar/google/callback`
+   `https://spaceone.tech/api/calendar/google/callback`
    For local tests add the exact local origin and port, e.g. `http://localhost:8787/api/calendar/google/callback`. `APP_ORIGIN` must match the origin the browser uses for sign-in, otherwise the OAuth state cookie cannot be read.
 4. Configure these requested scopes:
    - `https://www.googleapis.com/auth/calendar.events.owned`
    - `https://www.googleapis.com/auth/calendar.freebusy`
-5. Set Worker secrets from the project folder:
+5. Keep the public `GOOGLE_CLIENT_ID` in Wrangler vars (already supported), and set the private Worker secrets from the project folder. The Worker must exist under the configured name before secrets can be installed:
 
 ```sh
-npx wrangler secret put GOOGLE_CLIENT_ID
 npx wrangler secret put GOOGLE_CLIENT_SECRET
 npx wrangler secret put CALENDAR_ENCRYPTION_KEY
 ```
 
 Generate the encryption key with `openssl rand -hex 32`, keep it in your password manager, and paste it at the secret prompt. It encrypts each refresh token with AES-GCM and binds it to the owning user. Keep the same key across deployments; changing it requires clients to reconnect and should be treated as a token migration. Never commit secrets. For local development put values in your ignored `.dev.vars`.
 
-6. Back up production D1, apply `npm run db:remote`, then `npm run deploy`. Migration 0003 adds calendar connections, expiring OAuth requests, event links, and availability tables; existing application data is preserved.
+6. The configured remote D1 calendar migration was applied on September 10, 2026, with a private backup. For a new environment, back up D1, apply `npm run db:remote`, then `npm run deploy`. Migration 0003 adds calendar connections, expiring OAuth requests, event links, and availability tables; existing application data is preserved.
 7. Sign in as a test client, open **Interviews → Connect Google Calendar**, and grant both permissions. Staff cannot connect Google on behalf of a client.
 
 ## Daily workflow
