@@ -89,3 +89,18 @@ Scraped import input: JSON array, `{jobs:[…]}`, common `results/items/data` wr
 The import confirmation never trusts client-supplied normalized records: it processes the original input again. Duplicate imports do not overwrite editorial corrections. Use the job editor or standardized update API for intentional changes. JSON normalizers cannot infer every future scraper layout reliably; unmapped or ambiguous records require staff review.
 
 The current board fetches the visible catalog and paginates rendered rows. API consumers can sort/filter the returned normalized fields. Candidate rankings similarly operate over returned aggregate records. Import history, invitations, inquiry queues, and audit feeds return bounded recent records (100/500/1000/100 respectively); these are operational views, not archival exports.
+
+## Google Calendar and availability
+
+| Method | Path under `/api` | Access | Behavior |
+| --- | --- | --- | --- |
+| POST | `/calendar/google/connect` | Signed in | Returns the Google authorization URL; owner-only connection, state cookie and PKCE |
+| GET | `/calendar/google/callback` | Signed in, same browser | Consumes single-use OAuth state and saves encrypted refresh token |
+| DELETE | `/calendar/google` | Connection owner | Revokes authorization and removes local Google connection/links |
+| GET | `/calendar/summary?candidate={id}` | Owner or operator | Connection health, offered availability, linked event URLs; never tokens |
+| POST | `/calendar/availability` | Owner | `{job_id?: string|null, starts_at, ends_at, note?}`; future windows, maximum 24 hours each |
+| DELETE | `/calendar/availability/{id}` | Owner | Removes offered availability |
+| POST | `/calendar/refresh?candidate={id}` | Owner or operator | `{from,to}` ISO timestamps, maximum 32 days; returns busy intervals and refreshes up to 100 linked interviews within that range |
+| POST | `/calendar/interviews/{id}` | Owner or operator | `{create_meet?:boolean,resolution?:'portal'|'google'}`; creates/updates a linked Google event or resolves conflicting versions |
+
+Interview PATCH also accepts `{state:'completed'}` by itself. A saved interview edit may return `calendar_warning` if Google sync failed; the local record remains saved and the link's error is visible on the job page. DELETE first removes a linked Google event and rejects if that operation fails. Clients must explicitly connect Google; staff cannot authorize a client's account. No attendee invitations are sent automatically. Read `docs/GOOGLE-CALENDAR.md` for scope, sync behavior, and setup.

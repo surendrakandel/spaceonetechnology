@@ -164,3 +164,31 @@ test('Google sync creates one event, handles conflicts, keeps ownership, and ret
 		sqlite.close();
 	}
 });
+
+test('Google OAuth uses PKCE and consumes state once for the signed-in owner', async()=>{
+ const {sqlite,event}=fixture(); const cookies=new Map();
+ event.cookies={get:k=>cookies.get(k),set:(k,v)=>cookies.set(k,v),delete:k=>cookies.delete(k)};
+ const old=globalThis.fetch;let exchanges=0;
+ globalThis.fetch=async(url,options)=>{
+  assert.equal(url,'https://oauth2.googleapis.com/token');
+  assert.equal(options.body.get('code_verifier').length,64);
+  assert.equal(options.body.get('redirect_uri'),'https://candidate.spaceone.tech/api/calendar/google/callback');
+  exchanges++;
+  return Response.json({access_token:'access',refresh_token:'refresh-private',scope:'https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar.freebusy'});
+ };
+ try{
+  const connect=await calendarApi(event,['calendar','google','connect'],'POST',async()=>({}));
+  const url=new URL((await connect.json()).url);const state=url.searchParams.get('state');
+  assert.equal(url.searchParams.get('code_challenge_method'),'S256');assert.equal(url.searchParams.get('access_type'),'offline');
+  event.url=new URL('https://candidate.spaceone.tech/api/calendar/google/callback?state='+state+'&code=authorization-code');
+  event.locals.user={id:'b',role:'client'};
+  await assert.rejects(calendarApi(event,['calendar','google','callback'],'GET',async()=>({})),e=>e.status===400);
+  assert.equal(exchanges,0);
+  cookies.set('google_oauth_state',state);event.locals.user={id:'a',role:'client'};
+  await assert.rejects(calendarApi(event,['calendar','google','callback'],'GET',async()=>({})),e=>e.status===303 && e.location==='/interviews?google=connected');
+  assert.equal(exchanges,1);assert.notEqual(sqlite.prepare('SELECT refresh_token FROM calendar_connections').get().refresh_token,'refresh-private');
+  cookies.set('google_oauth_state',state);
+  await assert.rejects(calendarApi(event,['calendar','google','callback'],'GET',async()=>({})),e=>e.status===400);
+  assert.equal(exchanges,1);
+ }finally{globalThis.fetch=old;sqlite.close();}
+});

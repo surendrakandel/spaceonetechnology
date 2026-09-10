@@ -140,7 +140,7 @@
 	});
 </script>
 
-<section class="panel mt-6" aria-label="Calendar and availability">
+<section class="panel mt-6 @container" aria-label="Calendar and availability">
 	<div class="section-heading flex-wrap gap-3">
 		<div>
 			<p class="eyebrow">PLAN THE CONVERSATION</p>
@@ -238,7 +238,7 @@
 				: 'Google busy times have not been checked for this week.'}</small
 		>
 	</div>
-	<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-2">
+	<div class="grid grid-cols-1 @min-[420px]:grid-cols-2 @min-[760px]:grid-cols-7 gap-2">
 		{#each days as day}<div class="rounded-lg border border-line p-3 min-h-36">
 				<h3 class="text-sm mb-3">
 					{new Intl.DateTimeFormat('en-US', {
