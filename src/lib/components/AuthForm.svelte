@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AccountStory from './AccountStory.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { ArrowUpRight, ArrowRight, Eye, EyeOff, Check, Download, KeyRound } from '@lucide/svelte';
 	import { api, downloadText } from '$lib/client';
@@ -32,22 +33,7 @@
 </script>
 
 <div class="auth-layout">
-	<section class="auth-story">
-		<a class="brand" href="/">space one<span class="brand-dot">.</span></a>
-		<div class="auth-editorial">
-			<p class="eyebrow">YOUR NEXT CHAPTER</p>
-			<h1>Good things<br />are ahead<span>.</span></h1>
-			<p>A place for your opportunities.<br />And every step that comes next.</p>
-			<div class="path-art" aria-hidden="true">
-				<div class="path-ring one"></div>
-				<div class="path-ring two"></div>
-				<div class="path-ring three"></div>
-				<div class="path-arrow"><ArrowUpRight size={62} strokeWidth={1} /></div>
-				<span class="path-caption">THE WAY FORWARD</span>
-			</div>
-		</div>
-		<small>SPACE ONE TECHNOLOGY · CLIENT WORKSPACE</small>
-	</section>
+	<AccountStory />
 	<section class="auth-form-wrap">
 		<div class="auth-top">
 			{mode === 'login' ? 'New to the workspace?' : 'Already have an account?'}<a
@@ -60,8 +46,7 @@
 				<p class="eyebrow">KEEP THIS SAFE</p>
 				<h2>Your recovery key</h2>
 				<p class="muted">
-					Save this key in your password manager. You’ll need it to reset a forgotten password. We
-					only show it once.
+					Save this backup in your password manager for account recovery. We only show it once.
 				</p>
 				<code class="recovery-key">{recovery}</code><button
 					class="button secondary full"
@@ -87,14 +72,14 @@
 					{mode === 'login'
 						? 'Welcome back.'
 						: mode === 'signup'
-							? 'A fresh start.'
+							? 'Make room for what’s next.'
 							: 'Let’s get you back in.'}
 				</h2>
 				<p class="muted">
 					{mode === 'login'
-						? 'Your next opportunity is waiting for you.'
+						? 'Sign in to review your applications, interviews, and updates.'
 						: mode === 'signup'
-							? 'Create an account to explore your opportunities.'
+							? 'Create your profile to browse jobs and manage your applications.'
 							: 'Use the recovery key you saved when you signed up.'}
 				</p>
 				<form onsubmit={submit}>
@@ -179,3 +164,40 @@
 		<div class="auth-bottom"><Check size={14} /> A dedicated space for your job search.</div>
 	</section>
 </div>
+
+<style>
+	.auth-layout {
+		grid-template-columns: minmax(0, 47%) minmax(0, 53%);
+	}
+	.auth-form {
+		max-width: 420px;
+	}
+	.auth-form h2 {
+		font-size: clamp(1.9rem, 3vw, 2.5rem);
+		line-height: 1.16;
+		letter-spacing: -0.045em;
+	}
+	.auth-form > .muted,
+	.auth-top {
+		color: var(--muted);
+	}
+	.auth-form .eyebrow {
+		color: var(--forest);
+	}
+	@media (max-width: 1023px) {
+		.auth-layout {
+			grid-template-columns: 1fr;
+		}
+		.auth-form-wrap {
+			min-height: auto;
+			padding: 28px 24px;
+		}
+		.auth-form {
+			padding: 42px 0;
+		}
+		.auth-top {
+			flex-wrap: wrap;
+			justify-content: flex-start;
+		}
+	}
+</style>

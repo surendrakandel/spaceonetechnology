@@ -1,0 +1,90 @@
+@layer components {
+	/* Public-site typography and spacing; the signed-in workspace has its own layout. */
+	.public-site .site-width {
+		width: min(100%, 1600px);
+		margin-inline: auto;
+		padding-inline: clamp(24px, 4vw, 64px);
+	}
+	.public-site .site-title {
+		max-width: 960px;
+		margin-bottom: 24px;
+		font-size: clamp(2.65rem, 5.3vw, 5rem);
+		font-weight: 500;
+		line-height: 1.07;
+		letter-spacing: -0.055em;
+		text-wrap: balance;
+	}
+	.public-site .site-heading {
+		font-size: clamp(2rem, 3.4vw, 3.3rem);
+		font-weight: 500;
+		line-height: 1.15;
+		letter-spacing: -0.045em;
+		text-wrap: balance;
+	}
+	.public-site .site-serif {
+		font-family: Georgia, 'Times New Roman', serif;
+		font-style: italic;
+		font-weight: 400;
+		letter-spacing: -0.045em;
+	}
+	.public-site .site-kicker {
+		margin-bottom: 22px;
+		font-size: 10px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.17em;
+		color: var(--accent);
+	}
+	.public-site .site-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 28px;
+		min-height: 52px;
+		padding: 15px 23px;
+		border-radius: 6px;
+		font-size: 13px;
+		font-weight: 500;
+		transition: background 0.2s;
+	}
+	.public-site .site-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 12px;
+		width: fit-content;
+		padding-block: 5px;
+		border-bottom: 1px solid #a4513560;
+		font-size: 13px;
+		font-weight: 500;
+	}
+	.public-site .site-link:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	.public-site .reading-copy {
+		font-size: clamp(1rem, 1.5vw, 1.125rem);
+		line-height: 1.95;
+		color: var(--muted);
+	}
+	.public-site .section-title {
+		margin-bottom: 18px;
+		font-size: clamp(1.45rem, 2.2vw, 2rem);
+		font-weight: 500;
+		line-height: 1.25;
+		letter-spacing: -0.035em;
+	}
+	.public-site .public-form :is(input, textarea, select) {
+		background: var(--paper);
+		padding: 13px 14px;
+		border-radius: 5px;
+	}
+	.public-site .public-form label {
+		font-size: 13px;
+		font-weight: 500;
+	}
+	@media (max-width: 480px) {
+		.public-site .site-title {
+			font-size: clamp(2.2rem, 10vw, 3rem);
+		}
+	}
+}

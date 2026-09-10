@@ -55,7 +55,17 @@
 
 <div class="workspace">
 	<aside class:mobile-open={menu} class="sidebar overflow-y-auto">
-		<a class="brand" href="/dashboard">space one<span class="brand-dot">.</span></a>
+		<a
+				class="brand text-2xl flex items-center gap-2"
+				href="/"
+				aria-label="Space One Technology home"
+			>
+				<img src="./images/spaceonetechnology-logo.png" alt="Space One Technology" class="h-auto max-w-[200px]" />
+
+				<span class="sr-only">
+					spaceonetechnology<span class="brand-dot">.</span>
+				</span>
+		</a>
 		<div class="workspace-label my-6 text-xs">
 			<span class="tiny-square"></span>
 			{data.user.role === 'client' ? 'CLIENT WORKSPACE' : 'OPERATIONS'}

@@ -1,5 +1,13 @@
 // Keep the original media locations: these assets remain hosted by Space One Technology.
 export const media = {
+	avatars: [1, 2, 3, 4, 5].map(
+		(n) => `https://spaceonetechnology.com/wp-content/uploads/2025/09/71-home-1-client-${n}.webp`
+	),
+	projectWorkspace:
+		'https://spaceonetechnology.com/wp-content/uploads/2025/08/71-project-1-1024x673.webp',
+	editorial: [2, 3, 4].map(
+		(n) => `https://spaceonetechnology.com/wp-content/uploads/2025/08/71-project-${n}-1024x673.webp`
+	),
 	collaboration:
 		'https://spaceonetechnology.com/wp-content/uploads/2025/09/71-home-1-1-1024x645.webp',
 	collaborationSmall:

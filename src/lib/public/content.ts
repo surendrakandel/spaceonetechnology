@@ -15,6 +15,7 @@ export type PublicPage = {
 	intro: string;
 	sections: Section[];
 	cta?: string;
+	accent?: string;
 };
 export const services = [
 	{
@@ -492,7 +493,7 @@ export const standardPages: PublicPage[] = [
 		eyebrow: 'ABOUT SPACE ONE',
 		title: 'Good technology starts with people.',
 		intro:
-			'We bring technology work and career opportunity into the same conversation. For businesses, that means practical support for building and growing. For candidates, it means a more organized way to take the next step.',
+			'A product needs engineers who understand its users. A team needs people who can contribute. A candidate needs a clear route to the next opportunity. We connect the work with the people it depends on.',
 		sections: [
 			{
 				title: 'Understand the work',
@@ -538,9 +539,9 @@ export const standardPages: PublicPage[] = [
 		slug: 'engagements',
 		kind: 'standard',
 		eyebrow: 'A PRACTICAL WAY TO START',
-		title: 'The right scope for your next move.',
+		title: 'An engagement built around the work.',
 		intro:
-			'Some teams need a focused project. Others need an ongoing partner or the right person to join the work. We shape the engagement around the need.',
+			'Define the result, agree on responsibilities, and choose a way to work together. We offer focused projects, ongoing technology support, and help finding the right talent.',
 		sections: [
 			{
 				title: 'A focused project',
@@ -564,7 +565,7 @@ export const standardPages: PublicPage[] = [
 		slug: 'resources/candidate-roadmap',
 		kind: 'standard',
 		eyebrow: 'YOUR PREPARATION GUIDE',
-		title: 'Be ready for the conversation you want.',
+		title: 'Walk into your next interview prepared.',
 		intro:
 			'A strong search is built from small, repeatable habits. Use this guide to prepare honestly, stay organized, and follow through.',
 		sections: [
@@ -676,7 +677,7 @@ export const standardPages: PublicPage[] = [
 		sections: [
 			{
 				title: 'Website photography',
-				body: 'The collaboration image and contact portrait originate from the existing spaceonetechnology.com media library. They are used as illustrative photography and are not presented as portraits of named employees or proof of a specific client engagement.'
+				body: 'The collaboration photograph, portrait avatars, contact portrait, and editorial artwork originate from the existing spaceonetechnology.com media library. They are used as illustrative photography and are not presented as portraits of named employees or proof of a specific client engagement.'
 			},
 			{
 				title: 'Design & interface',
@@ -690,44 +691,45 @@ export const collectionPages: PublicPage[] = [
 		slug: 'services',
 		kind: 'services',
 		eyebrow: 'WHAT WE CAN HELP WITH',
-		title: 'Move the work forward.',
+		title: 'Your next challenge. The right expertise.',
 		intro:
-			'Build something useful. Connect what you already have. Find the people who can take it further.',
+			'Build the software your users need. Connect the systems your team relies on. Find the expertise to move a project forward. Tell us where the work is getting stuck.',
 		sections: []
 	},
 	{
 		slug: 'projects',
 		kind: 'projects',
 		eyebrow: 'IDEAS IN PRACTICE',
-		title: 'Explore what better could look like.',
+		title: 'Problems worth solving. Ideas worth exploring.',
 		intro:
-			'A collection of product concepts across industries. Each explores a practical problem, a possible approach, and what we would need to validate—not a claim of completed client results.',
+			'Explore how we approach product decisions across industries: the problem, the design, and the evidence a team would need before building. These are concepts, not client case studies.',
 		sections: []
 	},
 	{
 		slug: 'insights',
 		kind: 'articles',
 		eyebrow: 'FIELD NOTES',
-		title: 'A little perspective for the work ahead.',
-		intro: 'Practical thinking on software, design, data, and the decisions that connect them.',
+		title: 'Take a moment. Read something useful.',
+		intro:
+			'Short, specific notes on product decisions, software delivery, and the details that make an experience work. Written for people who have something to build.',
 		sections: []
 	},
 	{
 		slug: 'contact',
 		kind: 'contact',
 		eyebrow: 'LET’S TALK',
-		title: 'What are you working toward?',
+		title: 'Let’s talk about the work ahead.',
 		intro:
-			'Tell us where you are, what you need, and what a good next step would look like. We’ll help you find a practical place to begin.',
+			'Tell us what you’re building, who you need, or where your job search stands. A few details will help us connect you with the right conversation.',
 		sections: []
 	},
 	{
 		slug: 'careers',
 		kind: 'careers',
 		eyebrow: 'YOUR NEXT CHAPTER',
-		title: 'Your experience deserves a clear next step.',
+		title: 'Your experience. Your next opportunity.',
 		intro:
-			'Explore opportunities, prepare for conversations, and keep your search organized with support from Space One.',
+			'Find roles worth your attention and keep every application in order. Space One brings your opportunities, documents, interviews, and conversations into one shared workspace.',
 		sections: [
 			{
 				title: 'Find the roles worth your attention',
@@ -744,6 +746,24 @@ export const collectionPages: PublicPage[] = [
 		]
 	}
 ];
+const pageAccents: Record<string, string> = {
+	about: 'people.',
+	'company/team': 'One shared direction.',
+	engagements: 'built around the work.',
+	'resources/candidate-roadmap': 'prepared.',
+	services: 'The right expertise.',
+	projects: 'worth exploring.',
+	insights: 'Read something useful.',
+	contact: 'the work ahead.',
+	careers: 'Your next opportunity.',
+	'services/technology-staffing': 'the work ahead.',
+	'services/custom-software-app-development': 'Thoughtfully built.',
+	'services/crm-erp-solutions': 'depends on.',
+	'services/quality-assurance': 'every release.',
+	'services/workflow-automation': 'good work.',
+	'services/data-analytics': 'A better decision.',
+	'services/managed-it-support': 'moving with you.'
+};
 export const publicPages: PublicPage[] = [
 	...standardPages,
 	...collectionPages,
@@ -764,7 +784,7 @@ export const publicPages: PublicPage[] = [
 		sections: p.sections
 	})),
 	...articles.map((a) => ({ ...a, slug: `insights/${a.slug}` }))
-];
+].map((p) => ({ ...p, accent: pageAccents[p.slug] }));
 export const legacyRoutes: Record<string, string> = {
 	home: '/',
 	'home-two': '/',

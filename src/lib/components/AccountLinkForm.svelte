@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AccountStory from './AccountStory.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { api, downloadText } from '$lib/client';
 	import { ArrowRight, Download } from '@lucide/svelte';
@@ -42,27 +43,15 @@
 	}
 </script>
 
-<div class="min-h-screen grid lg:grid-cols-2 bg-paper">
-	<section class="bg-sage p-8 lg:p-16 flex flex-col justify-between min-h-64">
-		<a class="brand" href="/">space one<span class="brand-dot">.</span></a>
-		<div class="py-12">
-			<p class="eyebrow">YOUR NEXT CHAPTER</p>
-			<h1 class="text-5xl lg:text-7xl tracking-tight leading-[1.05] max-w-lg">
-				A place to<br />move forward<span class="text-rust">.</span>
-			</h1>
-			<p class="text-lg text-forest mt-6 max-w-sm">
-				Your opportunities, your people, and a clear next step.
-			</p>
-		</div>
-		<small class="text-forest tracking-widest">SPACE ONE TECHNOLOGY</small>
-	</section>
-	<main class="p-8 lg:p-16 flex items-center justify-center">
+<div class="min-h-screen grid lg:grid-cols-[47%_53%] bg-paper">
+	<AccountStory />
+	<main class="px-6 py-10 lg:p-16 flex items-center justify-center">
 		<div class="w-full max-w-md">
 			<a class="text-button mb-10" href="/client/login">← Back to sign in</a>
 			<p class="eyebrow">
 				{mode === 'invite' ? `${invite?.role || 'Workspace'} INVITATION` : 'ACCOUNT ACCESS'}
 			</p>
-			<h2 class="text-4xl tracking-tight">
+			<h2 class="text-[clamp(1.9rem,3vw,2.5rem)] leading-[1.16] tracking-[-.045em] mb-5">
 				{recovery
 					? 'Keep a backup.'
 					: mode === 'invite'

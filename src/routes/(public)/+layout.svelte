@@ -1,8 +1,44 @@
 <script lang="ts">
+	import '$lib/public/site.css';
 	import { page } from '$app/state';
 	import { ArrowUpRight, ArrowRight, Menu, X, Globe } from '@lucide/svelte';
 	let { children, data } = $props();
 	let menu = $state(false);
+	let careerPage = $derived(
+		page.url.pathname === '/careers' || page.url.pathname.startsWith('/resources/')
+	);
+	let showClosing = $derived(
+		!['/contact', '/privacy', '/terms', '/image-credits'].includes(page.url.pathname)
+	);
+	let closing = $derived(
+		careerPage
+			? {
+					lead: 'Ready for your',
+					accent: 'next chapter?',
+					label: data.signedIn ? 'Open your job board' : 'Create your workspace',
+					href: data.signedIn ? '/jobs' : '/client/signup'
+				}
+			: page.url.pathname === '/services/technology-staffing'
+				? {
+						lead: 'Tell us who',
+						accent: 'your team needs.',
+						label: 'Discuss your hiring needs',
+						href: '/contact?topic=Hiring%20%26%20staffing'
+					}
+				: page.url.pathname.startsWith('/services') || page.url.pathname === '/engagements'
+					? {
+							lead: 'Tell us what needs',
+							accent: 'to work better.',
+							label: 'Discuss your project',
+							href: '/contact?topic=Technology%20project'
+						}
+					: {
+							lead: 'Good work starts',
+							accent: 'with a conversation.',
+							label: 'Start a conversation',
+							href: '/contact'
+						}
+	);
 	const links = [
 		['/services', 'Services'],
 		['/about', 'Company'],
@@ -12,18 +48,30 @@
 	];
 </script>
 
-<div class="bg-canvas min-h-screen">
+<div class="public-site bg-canvas min-h-screen">
 	<a
 		class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-paper focus:p-4"
 		href="#public-main">Skip to content</a
 	>
 	<header class="border-b border-line bg-canvas">
 		<div
-			class="max-w-[1600px] mx-auto px-6 lg:px-10 min-h-24 flex items-center justify-between gap-6"
+			class="max-w-[1600px] mx-auto px-6 sm:px-[4vw] min-h-22 flex items-center justify-between gap-6"
 		>
-			<a class="brand text-2xl" href="/" aria-label="Space One Technology home"
-				>space one<span class="brand-dot">.</span></a
+			<a
+				class="brand text-2xl flex items-center gap-2"
+				href="/"
+				aria-label="Space One Technology home"
 			>
+				<img
+					src="/images/spaceonetechnology-logo.png"
+					alt="Space One Technology"
+					class="h-auto w-auto max-w-[200px] object-contain"
+				/>
+
+				<span class="sr-only">
+					spaceonetechnology<span class="brand-dot">.</span>
+				</span>
+			</a>
 			<nav class="hidden lg:flex gap-7 text-sm" aria-label="Company navigation">
 				{#each links as [href, label]}<a
 						class="hover:text-rust transition-colors"
@@ -58,26 +106,41 @@
 			</nav>{/if}
 	</header>
 	<main id="public-main">{@render children()}</main>
-	<section class="bg-forest text-white">
-		<div
-			class="max-w-[1600px] mx-auto px-6 lg:px-10 py-16 lg:py-24 flex flex-col md:flex-row md:items-center justify-between gap-8"
-		>
-			<div>
-				<p class="text-xs tracking-[.18em] mb-4 text-sage">A GOOD PLACE TO BEGIN</p>
-				<h2 class="text-4xl lg:text-5xl tracking-tight font-medium mb-0 max-w-xl">
-					Let’s make the next<br />step a useful one.
-				</h2>
-			</div>
-			<a
-				class="inline-flex items-center justify-between gap-12 rounded-full bg-sage text-forest px-7 py-5 font-medium w-fit hover:bg-paper transition-colors"
-				href="/contact">Start a conversation <ArrowUpRight size={22} /></a
+	{#if showClosing}<section class="bg-forest text-white">
+			<div
+				class="site-width flex flex-col justify-between gap-8 py-14 md:flex-row md:items-center lg:py-20"
 			>
-		</div>
-	</section>
-	<footer class="max-w-[1600px] mx-auto px-6 lg:px-10 pt-16 pb-7">
+				<div>
+					<p class="mb-5 text-[10px] uppercase tracking-[.17em] text-sage/75">
+						Make your next move
+					</p>
+					<h2 class="site-heading mb-0 text-white">
+						{closing.lead}<br /><span class="site-serif text-sage">{closing.accent}</span>
+					</h2>
+				</div>
+				<a class="site-button w-fit shrink-0 bg-sage text-forest hover:bg-paper" href={closing.href}
+					>{closing.label}<ArrowUpRight size={20} /></a
+				>
+			</div>
+		</section>{/if}
+	<footer class="site-width pt-16 pb-7">
 		<div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
 			<div>
-				<a class="brand" href="/">space one<span class="brand-dot">.</span></a>
+				<a
+					class="brand text-2xl flex items-center gap-2"
+					href="/"
+					aria-label="Space One Technology home"
+				>
+					<img
+						src="/images/spaceonetechnology-logo.png"
+						alt="Space One Technology"
+						class="h-auto max-w-[200px] w-auto"
+					/>
+
+					<span class="sr-only">
+						spaceonetechnology<span class="brand-dot">.</span>
+					</span>
+				</a>
 				<p class="text-muted text-sm leading-7 mt-5 max-w-64">
 					Technology that works.<br />People who move it forward.
 				</p>
@@ -121,11 +184,6 @@
 			class="flex flex-wrap justify-between gap-5 border-t border-line mt-14 pt-6 text-xs text-muted"
 		>
 			<span>© {new Date().getFullYear()} Space One Technology.</span>
-			<div class="flex gap-5">
-				<a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/image-credits"
-					>Image credits</a
-				>
-			</div>
 		</div>
 	</footer>
 </div>

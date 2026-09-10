@@ -1,6 +1,18 @@
 <script lang="ts">
 	import { api } from '$lib/client';
 	import { ArrowUpRight, Check } from '@lucide/svelte';
+	let { topic = '' }: { topic?: string } = $props();
+	const topics = [
+		'Technology project',
+		'Hiring & staffing',
+		'Career opportunities',
+		'Workspace support',
+		'Something else'
+	];
+	let interest = $state('');
+	$effect(() => {
+		interest = topics.includes(topic) ? topic : '';
+	});
 	let busy = $state(false),
 		error = $state(''),
 		sent = $state(false);
@@ -23,18 +35,22 @@
 	}
 </script>
 
-<section class="bg-paper border border-line rounded-2xl p-7 lg:p-10">
-	{#if sent}<div class="py-12">
+<section class="public-form bg-paper border border-line rounded-lg p-6 sm:p-8 lg:p-10">
+	{#if sent}<div class="py-12" role="status">
 			<Check size={32} class="text-forest mb-5" />
-			<h2 class="text-3xl tracking-tight">A good conversation starts here.</h2>
+			<h2 class="text-3xl tracking-tight">Your message is with our team.</h2>
 			<p class="text-muted leading-8">
-				Your message is with our team. We’ll review what you shared and respond using the email you
-				provided.
+				We’ll review the details and reply to the email address you provided. There’s no need to
+				submit the form again.
 			</p>
 			<button class="button secondary mt-4" onclick={() => (sent = false)}
 				>Send another message</button
 			>
-		</div>{:else}<h2 class="text-2xl tracking-tight mb-7">Tell us a little about it.</h2>
+		</div>{:else}<p class="site-kicker">Tell us what you need</p>
+		<h2 class="section-title mb-3">Start with the essentials.</h2>
+		<p class="mb-7 text-sm leading-7 text-muted">
+			What needs to change, and what would a good result look like?
+		</p>
 		{#if error}<p class="alert error" role="alert">{error}</p>{/if}
 		<form onsubmit={submit}>
 			<div class="grid sm:grid-cols-2 gap-5">
@@ -63,7 +79,7 @@
 					maxlength="160"
 				/></label
 			><label
-				>How can we help?<select name="interest" required
+				>How can we help?<select name="interest" bind:value={interest} required
 					><option value="">Choose a topic</option><option>Technology project</option><option
 						>Hiring & staffing</option
 					><option>Career opportunities</option><option>Workspace support</option><option
@@ -71,13 +87,13 @@
 					></select
 				></label
 			><label
-				>What would you like to make happen?<textarea
+				>What should we know?<textarea
 					name="message"
 					rows="5"
 					required
 					minlength="20"
 					maxlength="5000"
-					placeholder="A little context, your priorities, and any timeline you have in mind."
+					placeholder="Describe the project, hiring need, or question. Include your timeline if you have one."
 				></textarea></label
 			>
 			<div class="hidden" aria-hidden="true">
@@ -89,8 +105,9 @@
 					>Privacy information</a
 				>.
 			</p>
-			<button class="button primary mt-3" disabled={busy}
-				>{busy ? 'Sending…' : 'Send your message'}<ArrowUpRight size={17} /></button
+			<button
+				class="site-button mt-3 w-full bg-forest text-white hover:bg-ink sm:w-auto"
+				disabled={busy}>{busy ? 'Sending…' : 'Send your message'}<ArrowUpRight size={17} /></button
 			>
 		</form>{/if}
 </section>
