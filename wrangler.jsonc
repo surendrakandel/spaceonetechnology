@@ -42,7 +42,8 @@
 		"MAIL_MODE": "cloudflare",
 		"ALLOW_PUBLIC_SIGNUP": "true",
 		"GOOGLE_CLIENT_ID": "527741143784-tbfjogcvu4516jnickutc4b95qjaopro.apps.googleusercontent.com",
-		"GOOGLE_CLIENT_SECRET": "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"
+		"GOOGLE_CLIENT_SECRET": "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",
+		"CALENDAR_ENCRYPTION_KEY": "c107b4bc26b7401fd278f30ff500d311a7908e359f9f526c01ca152683a90889"
 
 	},
 	"send_email": [
