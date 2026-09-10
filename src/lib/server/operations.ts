@@ -27,6 +27,7 @@ import {
 import { emailSchema, jobSchema } from './schemas';
 import { normalizeInput, cleanText, type FieldMapping } from '$lib/job-import';
 import { sendAccountMail } from './mail';
+import { submitted, applicationMetrics } from './metrics';
 export function userColumns() {
 	return {
 		id: users.id,
@@ -48,7 +49,7 @@ export async function candidateRows(event: RequestEvent) {
 	return db(event)
 		.select({
 			...userColumns(),
-			applied: sql<number>`(SELECT COUNT(*) FROM applications a WHERE a.user_id="users"."id" AND a.applied_at IS NOT NULL)`,
+			applied: sql<number>`(SELECT COUNT(*) FROM applications a WHERE a.user_id="users"."id" AND ${submitted({id: sql`a.id`, status: sql`a.status`, applied_at: sql`a.applied_at`})})`,
 			processing: sql<number>`(SELECT COUNT(*) FROM applications a WHERE a.user_id="users"."id" AND a.status='processing')`,
 			offers: sql<number>`(SELECT COUNT(*) FROM applications a WHERE a.user_id="users"."id" AND a.status='offer')`,
 			rejected: sql<number>`(SELECT COUNT(*) FROM applications a WHERE a.user_id="users"."id" AND a.status='rejected')`,
@@ -110,7 +111,7 @@ export async function dashboard(event: RequestEvent) {
 	if (user.role !== 'client') {
 		const candidates = await candidateRows(event);
 		const [jobCount, pending, held, inbox] = await database.batch([
-			database.select({ value: count() }).from(jobs).where(eq(jobs.active, 1)),
+			database.select({ value: count() }).from(jobs).where(and(eq(jobs.active, 1), eq(jobs.quality_state, 'ready'))),
 			database
 				.select({ value: count() })
 				.from(invitations)
@@ -137,7 +138,8 @@ export async function dashboard(event: RequestEvent) {
 			}
 		};
 	}
-	return { candidates: [], stats: null };
+	const metrics = await applicationMetrics(event);
+	return { candidates: [], stats: { candidates: 0, jobs: 0, pending: 0, held: 0, inquiries: 0, ...metrics, interviews: metrics.completed } };
 }
 async function audit(event: RequestEvent, action: string, target: string, detail = '') {
 	await db(event)

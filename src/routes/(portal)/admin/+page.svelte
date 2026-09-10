@@ -12,7 +12,7 @@
 		Search,
 		Check
 	} from '@lucide/svelte';
-	import { api, date, downloadText, tags } from '$lib/client';
+	import { api, date, tags } from '$lib/client';
 	import type { Job } from '$lib/types';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	let { data } = $props();
@@ -24,8 +24,6 @@
 	let success = $state('');
 	let busy = $state(false);
 	let query = $state('');
-	let importJobs = $state<unknown[] | null>(null);
-	let importName = $state('');
 	async function run(fn: () => Promise<unknown>, message: string) {
 		busy = true;
 		error = '';
@@ -57,23 +55,6 @@
 		};
 		if (await run(() => api('admin/jobs', 'POST', body), 'Job saved.')) edit = undefined;
 	}
-	async function readImport(event: Event) {
-		const file = (event.target as HTMLInputElement).files?.[0];
-		if (!file) return;
-		error = '';
-		try {
-			if (file.size > 2 * 1024 * 1024) throw new Error('Use a JSON file smaller than 2 MB.');
-			const parsed = JSON.parse(await file.text());
-			const rows = Array.isArray(parsed) ? parsed : parsed.jobs;
-			if (!Array.isArray(rows) || rows.length < 1 || rows.length > 100)
-				throw new Error('Provide 1–100 jobs in an array or {"jobs": [...]} object.');
-			importJobs = rows;
-			importName = file.name;
-		} catch (e) {
-			error = (e as Error).message;
-		}
-		(event.target as HTMLInputElement).value = '';
-	}
 	async function saveAssignments() {
 		if (!assign) return;
 		if (
@@ -84,31 +65,13 @@
 		)
 			assign = null;
 	}
-	const example = [
-		{
-			id: 'your-stable-job-id',
-			title: 'Senior Frontend Engineer',
-			company: 'Your hiring partner',
-			location: 'United States',
-			workplace: 'Remote',
-			employment_type: 'Full-time',
-			salary: '$130,000–$160,000 / year',
-			description: 'Describe the role and the team here.',
-			requirements: 'Add the experience and skills needed.',
-			application_url: 'https://example.com/careers/role',
-			tags: ['TypeScript', 'React'],
-			visibility: 'all',
-			active: true,
-			deadline: null
-		}
-	];
 </script>
 
-<svelte:head><title>Manage workspace · Space One</title></svelte:head>
+<svelte:head><title>Manage jobs · Space One</title></svelte:head>
 <div class="page-heading">
 	<div>
 		<p class="eyebrow">THE RIGHT OPPORTUNITIES, THE RIGHT PEOPLE</p>
-		<h1>Manage workspace<span class="heading-dot">.</span></h1>
+		<h1>Manage jobs<span class="heading-dot">.</span></h1>
 		<p class="muted">Publish roles, assign clients, and see application progress.</p>
 	</div>
 	<button class="button primary" onclick={() => (edit = null)}><Plus size={17} />Add job</button>
@@ -120,12 +83,14 @@
 		<Check size={16} />{success}
 	</p>{/if}
 <div class="status-tabs standalone-tabs">
-	{#each ['jobs', 'clients', 'applications', 'import'] as t}<button
+	{#each ['jobs', 'applications'] as t}<button
 			class:active={tab === t}
 			onclick={() => (tab = t)}
 			>{t[0].toUpperCase() + t.slice(1)}{#if t === 'jobs'}
 				<span>{data.overview.jobs.length}</span>{/if}</button
 		>{/each}
+	<a class="text-button" href="/candidates">Candidates ↗</a>
+	<a class="text-button" href="/imports">Import jobs ↗</a>
 </div>
 {#if tab === 'jobs'}<section class="panel">
 		<div class="search-input admin-search">
@@ -169,24 +134,13 @@
 				<button class="button primary" onclick={() => (edit = null)}>Add a job</button>
 			</div>{/each}
 	</section>
-{:else if tab === 'clients'}<section class="panel">
-		{#each data.overview.users as user}<div class="admin-job-row">
-				<div>
-					<strong>{user.name}</strong>
-					<p>{user.email}</p>
-				</div>
-				<span class="neutral-badge">{user.role}</span><small
-					>{data.overview.applications.filter((a) => a.user_id === user.id).length} tracked jobs</small
-				>
-			</div>{/each}
-	</section>
 {:else if tab === 'applications'}<div class="panel table-panel">
 		<table>
 			<thead><tr><th>Client</th><th>Opportunity</th><th>Status</th><th>Updated</th></tr></thead
 			><tbody
 				>{#each data.overview.applications as item}<tr
 						><td><strong>{item.name}</strong><small>{item.email}</small></td><td
-							><strong>{item.title}</strong><small>{item.company}</small></td
+							><a class="inline-link" href={`/jobs/${item.job_id}?candidate=${item.user_id}`}>{item.title}</a><small>{item.company}</small></td
 						><td><StatusBadge status={item.status} /></td><td>{date(item.updated_at)}</td></tr
 					>{:else}<tr
 						><td colspan="4" class="small-empty-text"
@@ -196,51 +150,7 @@
 			>
 		</table>
 	</div>
-{:else}<section class="panel import-panel">
-		<Upload size={30} strokeWidth={1.3} />
-		<h2>Bring your opportunities over</h2>
-		<p class="muted">
-			<a class="inline-link" href="/imports"
-				>Import scraped data with automatic normalization and review →</a
-			>
-		</p>
-		<p class="muted">
-			For standardized job updates, import up to 100 jobs at a time. Each job needs a stable ID.
-			Reimporting an ID updates the listing and keeps client applications intact.
-		</p>
-		<button
-			class="button secondary"
-			onclick={() =>
-				downloadText(
-					'jobs-template.json',
-					JSON.stringify({ jobs: example }, null, 2),
-					'application/json'
-				)}><Download size={16} />Download JSON template</button
-		><label class="upload-box"
-			><Upload size={24} /><strong>Choose your jobs JSON</strong><span>JSON · up to 2 MB</span
-			><input type="file" accept=".json,application/json" onchange={readImport} /></label
-		>{#if importJobs}<div class="import-preview">
-				<strong>{importName}</strong>
-				<p>{importJobs.length} jobs ready for validation and import.</p>
-				<p class="form-footnote">
-					Existing IDs will be updated. Jobs missing from this file will stay as they are. The
-					entire batch is rejected if any entry is invalid.
-				</p>
-				<button
-					class="button primary"
-					disabled={busy}
-					onclick={async () => {
-						if (
-							await run(
-								() => api('admin/import', 'POST', { jobs: importJobs }),
-								`${importJobs!.length} jobs imported.`
-							)
-						)
-							importJobs = null;
-					}}>{busy ? 'Importing…' : 'Validate & import jobs'}</button
-				>
-			</div>{/if}
-	</section>{/if}
+{/if}
 {#if edit !== undefined}<div class="modal-backdrop">
 		<div
 			use:focusDialog={() => (edit = undefined)}

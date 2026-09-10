@@ -57,16 +57,6 @@
 			'Application updated.'
 		);
 	}
-	async function note(event: SubmitEvent) {
-		event.preventDefault();
-		const form = event.currentTarget as HTMLFormElement;
-		await action(
-			'note',
-			() => api(`jobs/${data.job.id}/notes`, 'POST', { body: new FormData(form).get('body') }),
-			'Note added.'
-		);
-		if (!error) form.reset();
-	}
 	async function upload(event: Event, kind: 'resume' | 'proof') {
 		const input = event.target as HTMLInputElement;
 		const file = input.files?.[0];
@@ -133,7 +123,7 @@
 <div class="detail-layout">
 	<section>
 		<div class="detail-tabs" role="group" aria-label="Job page section">
-			{#each [{ id: 'overview', label: 'Job overview' }, { id: 'documents', label: 'Documents', count: data.attachments.length }, { id: 'activity', label: 'Activity & notes', count: data.activity.length }] as t}<button
+			{#each [{ id: 'overview', label: 'Job overview' }, { id: 'documents', label: 'Documents', count: data.attachments.length }, { id: 'activity', label: 'Activity history', count: data.activity.length }] as t}<button
 					class:active={tab === t.id}
 					onclick={() => (tab = t.id)}
 					>{t.label}{#if t.count}<span class="count">{t.count}</span>{/if}</button
@@ -253,19 +243,7 @@
 						</p>{/each}{/each}
 			</div>
 		{:else}<div class="panel">
-				<h2>Activity & notes</h2>
-				<form class="note-form" onsubmit={note}>
-					<label class="sr-only" for="note">Application note</label><textarea
-						id="note"
-						name="body"
-						rows="3"
-						required
-						maxlength="5000"
-						placeholder="Add an update, a recruiter’s details, or something to remember…"
-					></textarea><button class="button primary" disabled={busy === 'note'}
-						><Plus size={16} />{busy === 'note' ? 'Adding…' : 'Add note'}</button
-					>
-				</form>
+				<h2>Activity history</h2>
 				<div class="timeline">
 					{#each data.activity as event}<div class="timeline-event">
 							<span class="timeline-dot"></span>
@@ -354,6 +332,7 @@
 							</p>{/if}{#if item.notes}<p class="interview-notes">{item.notes}</p>{/if}
 					</div>
 					<div class="interview-actions">
+                        {#if item.state === 'scheduled'}<button class="text-button" disabled={!!busy} onclick={() => action('complete', () => api(`interviews/${item.id}`, 'PATCH', {state: 'completed'}), 'Interview marked completed.')}>Mark completed</button>{/if}
 						<a
 							class="icon-button"
 							href={`/api/interviews/${item.id}/calendar`}
@@ -401,7 +380,7 @@
 					value={data.job.status}
 					disabled={busy === 'status'}
 					onchange={(e) => update({ status: e.currentTarget.value as Status })}
-					>{#each statuses as s}<option value={s}>{statusLabel[s]}</option>{/each}</select
+					>{#each statuses.filter((s) => s !== 'saved' || data.job.status === 'saved') as s}<option value={s}>{statusLabel[s]}</option>{/each}</select
 				></label
 			><label
 				>Follow up on<input

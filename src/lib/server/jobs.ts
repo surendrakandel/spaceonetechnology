@@ -10,6 +10,8 @@ import {
 	interviews as interviewTable
 } from './schema';
 import { commentRows, taskRows, profileFileRows } from './workspace';
+import { submitted } from './metrics';
+import { users } from './schema';
 import type { Job, Status } from '$lib/types';
 
 function queryJobs(event: RequestEvent, id?: string, subjectId?: string) {
@@ -31,7 +33,7 @@ function queryJobs(event: RequestEvent, id?: string, subjectId?: string) {
 	return database
 		.select({
 			...publicJobColumns(),
-			application_count: sql<number>`(SELECT COUNT(*) FROM applications counts WHERE counts.job_id=${jobs.id} AND counts.applied_at IS NOT NULL)`,
+			application_count: sql<number>`(SELECT COUNT(*) FROM applications counts JOIN users applicants ON applicants.id=counts.user_id WHERE counts.job_id=${jobs.id} AND applicants.access_role='client' AND ${submitted({id: sql`counts.id`, status: sql`counts.status`, applied_at: sql`counts.applied_at`})})`,
 			status: sql<Status>`COALESCE(${applications.status},'to_apply')`,
 			saved: sql<number>`COALESCE(${applications.saved},0)`,
 			follow_up: applications.follow_up,
@@ -40,7 +42,7 @@ function queryJobs(event: RequestEvent, id?: string, subjectId?: string) {
 			application_id: applications.id,
 			next_interview: sql<
 				string | null
-			>`(SELECT MIN(i.starts_at) FROM interviews i WHERE i.application_id=${applications.id} AND i.state='scheduled' AND i.ends_at > strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+			>`(SELECT MIN(i.starts_at) FROM interviews i WHERE i.application_id=${applications.id} AND i.state='scheduled' AND julianday(i.ends_at) > julianday('now'))`,
 			interview_state: sql<
 				string | null
 			>`(SELECT i.state FROM interviews i WHERE i.application_id=${applications.id} ORDER BY CASE WHEN i.state='scheduled' THEN 0 ELSE 1 END,i.starts_at DESC LIMIT 1)`
@@ -136,17 +138,21 @@ export async function details(event: RequestEvent, id: string) {
 	};
 }
 export async function interviews(event: RequestEvent) {
+	const user = requireUser(event);
 	return db(event)
 		.select({
 			...getTableColumns(interviewTable),
 			job_id: jobs.id,
 			job_title: jobs.title,
-			company: jobs.company
+			company: jobs.company,
+			user_id: users.id,
+			candidate_name: users.name
 		})
 		.from(interviewTable)
 		.innerJoin(applications, eq(applications.id, interviewTable.application_id))
 		.innerJoin(jobs, eq(jobs.id, applications.job_id))
-		.where(eq(applications.user_id, requireUser(event).id))
+		.innerJoin(users, eq(users.id, applications.user_id))
+		.where(user.role === 'client' ? eq(applications.user_id, user.id) : eq(users.access_role, 'client'))
 		.orderBy(asc(interviewTable.starts_at));
 }
 export async function documents(event: RequestEvent) {

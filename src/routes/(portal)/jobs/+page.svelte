@@ -81,7 +81,7 @@
 			.filter((i) => i.state === 'scheduled' && new Date(i.ends_at) > new Date())
 			.slice(0, 3)
 	);
-	let applied = $derived(data.jobs.filter((j) => !!j.applied_at).length);
+	let applied = $derived(data.metrics.applied);
 	let due = $derived(
 		data.jobs.filter(
 			(j) =>
@@ -151,19 +151,12 @@
 	<div class="stat">
 		<div><span>Applications sent</span><ArrowUpRight size={18} /></div>
 		<strong>{String(applied).padStart(2, '0')}</strong><small
-			>Every application is a step forward</small
+			>{data.user.role === 'client' ? 'Your recorded submissions' : 'Across all client applications'}</small
 		>
 	</div>
 	<div class="stat">
 		<div><span>Upcoming interviews</span><CalendarDays size={17} /></div>
-		<strong
-			>{String(
-				upcoming.length
-					? data.interviews.filter(
-							(i) => i.state === 'scheduled' && new Date(i.ends_at) > new Date()
-						).length
-					: 0
-			).padStart(2, '0')}</strong
+		<strong>{String(data.metrics.upcoming).padStart(2, '0')}</strong
 		><small
 			>{upcoming[0]
 				? `Next: ${date(upcoming[0].starts_at, data.user.timezone, true)}`
@@ -172,7 +165,7 @@
 	</div>
 	<div class="stat accent-stat">
 		<div><span>Offers received</span><Check size={18} /></div>
-		<strong>{String(data.jobs.filter((j) => j.status === 'offer').length).padStart(2, '0')}</strong
+		<strong>{String(data.metrics.offers).padStart(2, '0')}</strong
 		><small>Good things are taking shape</small>
 	</div>
 </div>
@@ -348,6 +341,7 @@
 								workplace = 'all';
 								interviewFilter = 'all';
 								savedOnly = false;
+							publication = 'all';
 								persist();
 							}}>Clear filters</button
 						>{:else if data.user.role !== 'client'}<a class="button primary" href="/admin"
@@ -366,7 +360,7 @@
 				<h3>Coming up</h3>
 				<CalendarDays size={17} />
 			</div>
-			{#each upcoming as interview}<a class="agenda-item" href={`/jobs/${interview.job_id}`}
+			{#each upcoming as interview}<a class="agenda-item" href={`/jobs/${interview.job_id}${data.user.role === 'client' ? '' : '?candidate=' + interview.user_id}`}
 					><div class="calendar-square">
 						<span
 							>{new Intl.DateTimeFormat('en-US', {
@@ -382,7 +376,7 @@
 					</div>
 					<div>
 						<strong>{interview.title}</strong>
-						<p>{interview.company}</p>
+						<p>{interview.company}{data.user.role !== 'client' ? ' · ' + interview.candidate_name : ''}</p>
 						<small>{date(interview.starts_at, data.user.timezone, true)}</small>
 					</div></a
 				>{:else}<div class="small-empty">

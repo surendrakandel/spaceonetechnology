@@ -30,6 +30,16 @@ import {
 } from './schema';
 import { statusLabel } from '$lib/types';
 
+function interviewApplicationUpdate(event: RequestEvent, appId: string, state: string) {
+	const progressing = state !== 'cancelled';
+	return db(event).update(applications).set({
+		status: progressing ? sql`CASE WHEN ${applications.status} IN ('to_apply','saved','applied','processing') THEN 'interview' ELSE ${applications.status} END` : undefined,
+		applied_at: progressing ? sql`COALESCE(${applications.applied_at},strftime('%Y-%m-%dT%H:%M:%fZ','now'))` : undefined,
+		updated_at: new Date().toISOString(),
+		version: sql`${applications.version}+1`
+	}).where(eq(applications.id, appId));
+}
+
 async function readJson(event: RequestEvent) {
 	try {
 		return JSON.parse(
@@ -142,6 +152,8 @@ async function route(event: RequestEvent): Promise<Response> {
 			const previous = await getJob(event, id);
 			const appId = await application(event, id);
 			const status = data.status ?? previous.status;
+			if (data.applied_at === null && ['applied', 'processing', 'interview', 'offer', 'rejected'].includes(status))
+				error(400, 'Choose To apply before clearing the submission date, or keep the date for this application status.');
 			const applied =
 				data.applied_at !== undefined
 					? data.applied_at
@@ -194,6 +206,7 @@ async function route(event: RequestEvent): Promise<Response> {
 			const interviewId = crypto.randomUUID();
 			await database.batch([
 				database.insert(meetings).values({ id: interviewId, application_id: appId, ...data }),
+				interviewApplicationUpdate(event, appId, data.state),
 				activityStatement(event, appId, 'interview', `Interview added: ${data.title}`)
 			]);
 			return json({ id: interviewId }, { status: 201 });
@@ -222,9 +235,15 @@ async function route(event: RequestEvent): Promise<Response> {
 				}
 			});
 		if (method === 'PATCH') {
-			const data = interviewSchema.parse(await readJson(event));
+			const { id: _id, application_id: _appId, ...current } = item;
+			const patch = z.object({
+				title: z.unknown().optional(), starts_at: z.unknown().optional(), ends_at: z.unknown().optional(),
+				timezone: z.unknown().optional(), state: z.unknown().optional(), location: z.unknown().optional(), notes: z.unknown().optional()
+			}).strict().parse(await readJson(event));
+			const data = interviewSchema.parse({ ...current, ...patch });
 			await database.batch([
 				database.update(meetings).set(data).where(eq(meetings.id, item.id)),
+				interviewApplicationUpdate(event, item.application_id, data.state),
 				activityStatement(
 					event,
 					item.application_id,
@@ -237,6 +256,7 @@ async function route(event: RequestEvent): Promise<Response> {
 		if (method === 'DELETE') {
 			await database.batch([
 				database.delete(meetings).where(eq(meetings.id, item.id)),
+				interviewApplicationUpdate(event, item.application_id, 'cancelled'),
 				activityStatement(
 					event,
 					item.application_id,

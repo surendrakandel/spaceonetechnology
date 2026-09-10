@@ -30,10 +30,10 @@
 		"cpu_ms": 30000
 	},
 	"vars": {
-		"APP_ORIGIN": "https://clients.spaceonetechnology.com",
+		"APP_ORIGIN": "https://candidate.spaceone.tech",
 		"EMAIL_FROM": "invites@spaceonetechnology.com",
 		"MAIL_MODE": "cloudflare",
 		"ALLOW_PUBLIC_SIGNUP": "true"
 	},
-	"send_email": [{ "name": "EMAIL" }]
+	"send_email": [{ "name": "EMAIL", "remote": true }]
 }

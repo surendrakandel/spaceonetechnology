@@ -7,7 +7,7 @@
 	let upcoming = $derived(
 		data.interviews.filter((i) => i.state === 'scheduled' && new Date(i.ends_at) > new Date())
 	);
-	let applied = $derived(data.jobs.filter((j) => j.applied_at).length);
+	let applied = $derived(data.stats.applied);
 </script>
 
 <svelte:head><title>Dashboard · Space One</title></svelte:head>
@@ -26,7 +26,7 @@
 	>
 </div>
 <div class="stats-grid">
-	{#each client ? [['Opportunities', data.jobs.length, 'Roles to explore'], ['Applications sent', applied, 'Your recorded submissions'], ['Upcoming interviews', upcoming.length, 'Conversations ahead'], ['Offers', data.jobs.filter((j) => j.status === 'offer').length, 'New possibilities']] : [['Candidates', data.stats?.candidates || 0, 'People in your workspace'], ['Applications sent', data.stats?.applied || 0, 'Across all clients'], ['Interviews completed', data.stats?.interviews || 0, 'Recorded conversations'], ['Live jobs', data.stats?.jobs || 0, 'Open opportunities']] as stat, i}<div
+	{#each client ? [['Opportunities', data.jobs.length, 'Roles to explore'], ['Applications sent', applied, 'Your recorded submissions'], ['Upcoming interviews', upcoming.length, 'Conversations ahead'], ['Interviews completed', data.stats.interviews, 'Rounds marked completed']] : [['Candidates', data.stats?.candidates || 0, 'People in your workspace'], ['Applications sent', data.stats?.applied || 0, 'Across all clients'], ['Interviews completed', data.stats?.interviews || 0, 'Recorded conversations'], ['Live jobs', data.stats?.jobs || 0, 'Open opportunities']] as stat, i}<div
 			class="stat"
 			class:accent-stat={i === 3}
 		>
@@ -81,7 +81,7 @@
 	<aside>
 		{#if !client}<section class="agenda-card">
 				<h2>Needs attention</h2>
-				{#each [['/imports', 'Jobs awaiting review', data.stats?.held], ['/invitations', 'Pending invitations', data.stats?.pending], ['/inquiries', 'New inquiries', data.stats?.inquiries]] as item}<a
+				{#each [['/admin', 'Jobs awaiting review', data.stats?.held], ['/invitations', 'Pending invitations', data.stats?.pending], ['/inquiries', 'New inquiries', data.stats?.inquiries]] as item}<a
 						class="flex items-center gap-3 py-5 border-b border-line [&>span]:grow"
 						href={String(item[0])}
 						><span>{item[1]}</span><strong>{item[2] || 0}</strong><ArrowUpRight size={16} /></a
@@ -89,13 +89,13 @@
 			</section>{/if}
 		<section class="agenda-card">
 			<div class="section-heading">
-				<h2>Your calendar</h2>
+				<h2>{client ? 'Your calendar' : 'Candidate interviews'}</h2>
 				<CalendarDays size={18} />
 			</div>
-			{#each upcoming.slice(0, 4) as i}<a class="agenda-item" href={`/jobs/${i.job_id}`}
+			{#each upcoming.slice(0, 4) as i}<a class="agenda-item" href={`/jobs/${i.job_id}${client ? '' : '?candidate=' + i.user_id}`}
 					><span
 						><strong>{i.title}</strong>
-						<p>{i.company}</p>
+						<p>{i.company}{client ? '' : ' · ' + i.candidate_name}</p>
 						<small>{date(i.starts_at, data.user.timezone, true)}</small></span
 					></a
 				>{:else}<p class="small-empty-text">No upcoming interviews in your calendar.</p>{/each}<a

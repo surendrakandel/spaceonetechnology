@@ -23,7 +23,7 @@
 	let error = $state('');
 	let links = $derived([
 		{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-		{ href: '/jobs', label: 'My opportunities', icon: BriefcaseBusiness },
+		{ href: '/jobs', label: data.user.role === 'client' ? 'My opportunities' : 'Jobs', icon: BriefcaseBusiness },
 		{ href: '/interviews', label: 'Interviews', icon: CalendarDays },
 		{ href: '/documents', label: 'Documents', icon: Files },
 		...(data.user.role !== 'client'
@@ -75,7 +75,7 @@
 			{#if data.user.role !== 'client'}<a
 					class:active={page.url.pathname === '/admin'}
 					href="/admin"
-					onclick={() => (menu = false)}><ShieldCheck size={18} />Manage workspace</a
+					onclick={() => (menu = false)}><ShieldCheck size={18} />Manage jobs</a
 				>{/if}<a
 				class:active={page.url.pathname === '/settings'}
 				href="/settings"
@@ -117,7 +117,7 @@
 						: page.url.pathname === '/jobs'
 							? 'My opportunities'
 							: page.url.pathname === '/admin'
-								? 'Manage workspace'
+								? 'Manage jobs'
 								: page.url.pathname.slice(1).replace(/^./, (s) => s.toUpperCase())}</strong
 				>
 			</div>
