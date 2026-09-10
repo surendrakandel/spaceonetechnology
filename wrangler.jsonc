@@ -22,15 +22,15 @@
 			"bucket_name": "space-one-tech-client-files"
 		}
 	],
-  "observability": {
-    "logs": {
-      "enabled": true,
-      "invocation_logs": true
-    },
-    "traces": {
-      "enabled": false
-    }
-  },
+	"observability": {
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true
+		},
+		"traces": {
+			"enabled": false
+		}
+	},
 	"limits": {
 		"cpu_ms": 30000
 	},
