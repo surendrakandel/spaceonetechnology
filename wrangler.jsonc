@@ -31,7 +31,7 @@
 	},
 	"vars": {
 		"APP_ORIGIN": "https://spaceone.tech",
-		"EMAIL_FROM": "invites@spaceonetechnology.com",
+		"EMAIL_FROM": "ops@spaceone.tech",
 		"MAIL_MODE": "cloudflare",
 		"ALLOW_PUBLIC_SIGNUP": "true"
 	},
