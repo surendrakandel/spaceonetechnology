@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, Card, Input, MetricCard } from '@usecase-ui/svelte';
+
 	import { page } from '$app/state';
 	import { goto, invalidateAll } from '$app/navigation';
 	import {
@@ -162,34 +164,30 @@
 	</div>
 </div>
 <div class="stats-grid">
-	<div class="stat">
-		<div><span>Total opportunities</span><BriefcaseBusiness size={17} /></div>
-		<strong>{String(data.jobs.length).padStart(2, '0')}</strong><small
-			>Selected for your next move</small
-		>
-	</div>
-	<div class="stat">
-		<div><span>Applications sent</span><ArrowUpRight size={18} /></div>
-		<strong>{String(applied).padStart(2, '0')}</strong><small
-			>{data.user.role === 'client'
-				? 'Your recorded submissions'
-				: 'Across all client applications'}</small
-		>
-	</div>
-	<div class="stat">
-		<div><span>Upcoming interviews</span><CalendarDays size={17} /></div>
-		<strong>{String(data.metrics.upcoming).padStart(2, '0')}</strong><small
-			>{upcoming[0]
-				? `Next: ${date(upcoming[0].starts_at, data.user.timezone, true)}`
-				: 'Room for your next conversation'}</small
-		>
-	</div>
-	<div class="stat accent-stat">
-		<div><span>Offers received</span><Check size={18} /></div>
-		<strong>{String(data.metrics.offers).padStart(2, '0')}</strong><small
-			>Good things are taking shape</small
-		>
-	</div>
+	<MetricCard
+		label="Total opportunities"
+		value={String(data.jobs.length)}
+		description="Selected for your next move"
+	/>
+	<MetricCard
+		label="Applications sent"
+		value={String(applied)}
+		description={data.user.role === 'client'
+			? 'Your recorded submissions'
+			: 'Across all client applications'}
+	/>
+	<MetricCard
+		label="Upcoming interviews"
+		value={String(data.metrics.upcoming)}
+		description={upcoming[0]
+			? `Next: ${date(upcoming[0].starts_at, data.user.timezone, true)}`
+			: 'Room for your next conversation'}
+	/>
+	<MetricCard
+		label="Offers received"
+		value={String(data.metrics.offers)}
+		description="Good things are taking shape"
+	/>
 </div>
 {#if error}<p class="alert error" role="alert">{error}</p>{/if}
 <div class="board-layout">
@@ -201,7 +199,7 @@
 			</h2>
 			<button
 				class:chosen={savedOnly}
-				class="text-button"
+				class="du-btn du-btn-ghost text-button"
 				onclick={() => {
 					savedOnly = !savedOnly;
 					limit = 15;
@@ -210,6 +208,7 @@
 		</div>
 		<div class="status-tabs" role="group" aria-label="Application status">
 			{#each tabs as tab}<button
+					class="du-btn du-btn-ghost"
 					class:active={status === tab}
 					onclick={() => {
 						status = tab;
@@ -224,12 +223,12 @@
 						>{/if}</button
 				>{/each}
 		</div>
-		{#if operator}<p class="text-xs text-muted mt-3">
+		{#if operator}<p class="text-xs text-muted-foreground mt-3">
 				Status filters match activity from any client. A job can appear in more than one stage.
 			</p>{/if}
 		<div class="board-toolbar">
 			<div class="search-input">
-				<Search size={17} /><input
+				<Search size={17} /><Input
 					aria-label="Search jobs"
 					placeholder="Search role, company, or keyword…"
 					bind:value={query}
@@ -237,22 +236,29 @@
 						limit = 15;
 					}}
 					onblur={persist}
-				/>{#if query}<button
+				/>{#if query}<Button
+						variant="ghost"
+						type="button"
+						size="icon"
 						class="icon-button"
 						aria-label="Clear search"
 						onclick={() => {
 							query = '';
 							persist();
-						}}><X size={15} /></button
+						}}><X size={15} /></Button
 					>{/if}
 			</div>
 			<button
 				class:chosen={filters}
-				class="button secondary filter-button"
+				class="du-btn du-btn-outline button secondary filter-button"
 				onclick={() => (filters = !filters)}><SlidersHorizontal size={16} />Filters</button
 			>
 			<div class="sort-select">
-				<ArrowDownUp size={15} /><select aria-label="Sort jobs" bind:value={sort} onchange={persist}
+				<ArrowDownUp size={15} /><select
+					class="du-select"
+					aria-label="Sort jobs"
+					bind:value={sort}
+					onchange={persist}
 					><option value="newest">Recently added</option><option value="posted"
 						>Recently posted</option
 					><option value="oldest">Oldest first</option><option value="most_applied"
@@ -267,33 +273,33 @@
 				>
 			</div>
 		</div>
-		{#if filters}<div class="filter-panel">
-				{#if data.user.role !== 'client'}<label
-						>Publication<select bind:value={publication}
+		{#if filters}<Card class="filter-panel">
+				{#if data.user.role !== 'client'}<label class="field-label"
+						>Publication<select class="du-select" bind:value={publication}
 							><option value="all">All listings</option><option value="live">Live</option><option
 								value="review">Needs review</option
 							><option value="closed">Closed / draft</option></select
 						></label
 					>{/if}
-				<label
-					>Status<select bind:value={status} onchange={persist}
+				<label class="field-label"
+					>Status<select class="du-select" bind:value={status} onchange={persist}
 						><option value="all">All statuses</option>{#each statuses as value}<option {value}
 								>{statusLabel[value]}</option
 							>{/each}</select
 					></label
-				><label
-					>Workplace<select bind:value={workplace}
+				><label class="field-label"
+					>Workplace<select class="du-select" bind:value={workplace}
 						><option value="all">Any workplace</option><option>Remote</option><option>Hybrid</option
 						><option>On-site</option></select
 					></label
-				><label
-					>Interview state<select bind:value={interviewFilter}
+				><label class="field-label"
+					>Interview state<select class="du-select" bind:value={interviewFilter}
 						><option value="all">Any state</option><option value="scheduled">Scheduled</option
 						><option value="completed">Completed</option><option value="cancelled">Cancelled</option
 						></select
 					></label
 				>
-			</div>{/if}
+			</Card>{/if}
 		<div class="list-caption">
 			<span
 				>{results.length}
@@ -339,7 +345,7 @@
 						<div class="job-actions">
 							{#if data.user.role === 'client'}<button
 									class:saved={!!job.saved}
-									class="icon-button"
+									class="du-btn du-btn-ghost icon-button"
 									disabled={busy === job.id}
 									aria-label={job.saved ? 'Unsave job' : 'Save job'}
 									aria-pressed={!!job.saved}
@@ -360,7 +366,9 @@
 							? 'Try a different search or clear your filters.'
 							: 'Your team will share jobs here. Each one will have a place for your resume, updates, and interviews.'}
 					</p>
-					{#if data.jobs.length}<button
+					{#if data.jobs.length}<Button
+							variant="outline"
+							type="button"
 							class="button secondary"
 							onclick={() => {
 								query = '';
@@ -370,15 +378,19 @@
 								savedOnly = false;
 								publication = 'all';
 								persist();
-							}}>Clear filters</button
-						>{:else if data.user.role !== 'client'}<a class="button primary" href="/admin"
-							>Add your first job <ArrowRight size={16} /></a
+							}}>Clear filters</Button
+						>{:else if data.user.role !== 'client'}<Button
+							variant="default"
+							class="button primary"
+							href="/admin">Add your first job <ArrowRight size={16} /></Button
 						>{/if}
 				</div>{/each}
 		</div>
-		{#if results.length > limit}<button
-				class="button secondary full load-more"
-				onclick={() => (limit += 15)}>Show more opportunities</button
+		{#if results.length > limit}<Button
+				variant="outline"
+				type="button"
+				class="button secondary w-full load-more"
+				onclick={() => (limit += 15)}>Show more opportunities</Button
 			>{/if}
 	</section>
 	<aside class="board-aside">

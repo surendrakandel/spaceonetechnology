@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, MetricCard, PageHeader } from '@usecase-ui/svelte';
+
 	import { ArrowUpRight, CalendarDays, ArrowRight, Users, BriefcaseBusiness } from '@lucide/svelte';
 	import { date, initials } from '$lib/client';
 	import TaskList from '$lib/components/TaskList.svelte';
@@ -11,38 +13,36 @@
 </script>
 
 <svelte:head><title>Dashboard · Space One</title></svelte:head>
-<div class="page-heading">
-	<div>
-		<p class="eyebrow">{client ? 'YOUR NEXT CHAPTER' : 'WORKSPACE OVERVIEW'}</p>
-		<h1>Welcome, {data.user.name.split(' ')[0]}<span class="heading-dot">.</span></h1>
-		<p class="muted">
-			{client
-				? 'A clear view of your search. A good place to move it forward.'
-				: 'The people, opportunities, and next steps that need your attention.'}
-		</p>
-	</div>
-	<a class="button primary" href={client ? '/jobs' : '/invitations'}
-		>{client ? 'Explore opportunities' : 'Invite someone'}<ArrowUpRight size={17} /></a
+<PageHeader
+	class="page-heading"
+	eyebrow={client ? 'YOUR NEXT CHAPTER' : 'WORKSPACE OVERVIEW'}
+	title={`Welcome, ${data.user.name.split(' ')[0]}.`}
+	description={client
+		? 'A clear view of your search. A good place to move it forward.'
+		: 'The people, opportunities, and next steps that need your attention.'}
+>
+	<Button href={client ? '/jobs' : '/invitations'}
+		>{client ? 'Explore opportunities' : 'Invite someone'}<ArrowUpRight size={17} /></Button
 	>
-</div>
+</PageHeader>
 <div class="stats-grid">
-	{#each client ? [['Opportunities', data.jobs.length, 'Roles to explore'], ['Applications sent', applied, 'Your recorded submissions'], ['Upcoming interviews', upcoming.length, 'Conversations ahead'], ['Interviews completed', data.stats.interviews, 'Rounds marked completed']] : [['Candidates', data.stats?.candidates || 0, 'People in your workspace'], ['Applications sent', data.stats?.applied || 0, 'Across all clients'], ['Interviews completed', data.stats?.interviews || 0, 'Recorded conversations'], ['Live jobs', data.stats?.jobs || 0, 'Open opportunities']] as stat, i}<div
-			class="stat"
-			class:accent-stat={i === 3}
-		>
-			<div><span>{stat[0]}</span><ArrowUpRight size={17} /></div>
-			<strong>{stat[1]}</strong><small>{stat[2]}</small>
-		</div>{/each}
+	{#each client ? [['Opportunities', data.jobs.length, 'Roles to explore'], ['Applications sent', applied, 'Your recorded submissions'], ['Upcoming interviews', upcoming.length, 'Conversations ahead'], ['Interviews completed', data.stats.interviews, 'Rounds marked completed']] : [['Candidates', data.stats?.candidates || 0, 'People in your workspace'], ['Applications sent', data.stats?.applied || 0, 'Across all clients'], ['Interviews completed', data.stats?.interviews || 0, 'Recorded conversations'], ['Live jobs', data.stats?.jobs || 0, 'Open opportunities']] as stat}<MetricCard
+			label={String(stat[0])}
+			value={String(stat[1])}
+			description={String(stat[2])}
+		/>{/each}
 </div>
 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
 	<div>
 		{#if !client}<section class="panel">
 				<div class="section-heading">
 					<h2>Candidate momentum</h2>
-					<a class="text-button" href="/candidates">All candidates <ArrowRight size={15} /></a>
+					<Button variant="ghost" size="sm" class="text-button" href="/candidates"
+						>All candidates <ArrowRight size={15} /></Button
+					>
 				</div>
 				{#each [...data.candidates].sort((a, b) => b.applied - a.applied).slice(0, 5) as c}<a
-						class="flex items-center gap-4 py-5 border-b border-line [&>span:nth-child(2)]:grow [&_small]:block [&_small]:text-muted"
+						class="flex items-center gap-4 py-5 border-b border-border [&>span:nth-child(2)]:grow [&_small]:block [&_small]:text-muted-foreground"
 						href={`/candidates/${c.id}`}
 						><span class="avatar">{initials(c.name)}</span><span
 							><strong>{c.name}</strong><small>{c.headline || c.email}</small></span
@@ -57,12 +57,14 @@
 			</section>{:else}<section class="panel">
 				<div class="section-heading">
 					<h2>Pick up where you left off</h2>
-					<a class="text-button" href="/jobs">All jobs <ArrowRight size={15} /></a>
+					<Button variant="ghost" size="sm" class="text-button" href="/jobs"
+						>All jobs <ArrowRight size={15} /></Button
+					>
 				</div>
 				{#each data.jobs
 					.filter((j) => j.saved || j.follow_up || !['offer', 'rejected', 'withdrawn'].includes(j.status))
 					.slice(0, 4) as job}<a
-						class="flex items-center gap-4 py-5 border-b border-line [&>span:nth-child(2)]:grow [&_small]:block [&_small]:text-muted"
+						class="flex items-center gap-4 py-5 border-b border-border [&>span:nth-child(2)]:grow [&_small]:block [&_small]:text-muted-foreground"
 						href={`/jobs/${job.id}`}
 						><span class="company-mark tone-1">{initials(job.company)}</span><span
 							><strong>{job.title}</strong><small>{job.company} · {job.location}</small></span
@@ -79,11 +81,11 @@
 			</section>{/if}
 		<TaskList items={data.tasks} />
 	</div>
-	<aside>
+	<aside class="flex flex-col gap-6">
 		{#if !client}<section class="agenda-card">
 				<h2>Needs attention</h2>
 				{#each [['/admin', 'Jobs awaiting review', data.stats?.held], ['/invitations', 'Pending invitations', data.stats?.pending], ['/inquiries', 'New inquiries', data.stats?.inquiries]] as item}<a
-						class="flex items-center gap-3 py-5 border-b border-line [&>span]:grow"
+						class="flex items-center gap-3 py-5 border-b border-border [&>span]:grow"
 						href={String(item[0])}
 						><span>{item[1]}</span><strong>{item[2] || 0}</strong><ArrowUpRight size={16} /></a
 					>{/each}
@@ -113,8 +115,8 @@
 				Keep your profile current, save the resume you send, and give every conversation a
 				follow-up.
 			</p>
-			<a class="text-button" href="/resources/candidate-roadmap"
-				>Your preparation guide <ArrowUpRight size={16} /></a
+			<Button variant="ghost" size="sm" class="text-button" href="/resources/candidate-roadmap"
+				>Your preparation guide <ArrowUpRight size={16} /></Button
 			>
 		</section>
 	</aside>

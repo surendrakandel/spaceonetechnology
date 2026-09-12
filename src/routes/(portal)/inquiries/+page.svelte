@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Card } from '@usecase-ui/svelte';
+
 	import { invalidateAll } from '$app/navigation';
 	import { api, date } from '$lib/client';
 	let { data } = $props();
@@ -26,7 +28,7 @@
 		<h1>Website inquiries<span class="heading-dot">.</span></h1>
 		<p class="muted">Every message from your public contact page, ready for a thoughtful reply.</p>
 	</div>
-	<select class="w-auto" aria-label="Filter inquiries" bind:value={status}
+	<select class="du-select w-auto" aria-label="Filter inquiries" bind:value={status}
 		><option value="all">All inquiries</option><option value="new">New</option><option
 			value="in_progress">In progress</option
 		><option value="closed">Closed</option></select
@@ -42,12 +44,12 @@
 					<p class="eyebrow">{inquiry.interest}</p>
 					<h2>{inquiry.name}{inquiry.company ? ` · ${inquiry.company}` : ''}</h2>
 					<a class="inline-link text-sm" href={`mailto:${inquiry.email}`}>{inquiry.email}</a><small
-						class="block text-muted mt-2"
+						class="block text-muted-foreground mt-2"
 						>{date(inquiry.created_at, data.user.timezone, true)}</small
 					>
 				</div>
 				<select
-					class="w-auto"
+					class="du-select w-auto"
 					aria-label={`Status for ${inquiry.name}`}
 					value={inquiry.status}
 					disabled={busy === inquiry.id}
@@ -57,8 +59,8 @@
 					></select
 				>
 			</div>
-			<p class="whitespace-pre-line leading-7 mt-6 mb-0">{inquiry.message}</p>
-		</article>{:else}<div class="panel py-14 text-center text-muted">
+			<p class="whitespace-pre-border leading-7 mt-6 mb-0">{inquiry.message}</p>
+		</article>{:else}<Card class="panel py-14 text-center text-muted-foreground">
 			No inquiries in this view.
-		</div>{/each}
+		</Card>{/each}
 </div>

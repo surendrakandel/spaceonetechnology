@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button } from '@usecase-ui/svelte';
+
 	import CandidateCalendar from '$lib/components/CandidateCalendar.svelte';
 	import { ArrowLeft, ArrowUpRight, FileText } from '@lucide/svelte';
 	import { date, tags } from '$lib/client';
@@ -45,16 +47,16 @@
 		<section class="panel">
 			<div class="section-heading">
 				<h2>Application history</h2>
-				<select class="w-auto" aria-label="Sort applications" bind:value={sort}
+				<select class="du-select w-auto" aria-label="Sort applications" bind:value={sort}
 					><option value="updated">Latest update</option><option value="status">Status</option
 					><option value="company">Company</option></select
 				>
 			</div>
 			{#each apps as app}<a
-					class="flex flex-wrap items-center gap-4 border-b border-line py-5"
+					class="flex flex-wrap items-center gap-4 border-b border-border py-5"
 					href={`/jobs/${app.job_id}?candidate=${data.candidate.id}`}
 					><span class="grow"
-						><strong class="block">{app.title}</strong><small class="text-muted"
+						><strong class="block">{app.title}</strong><small class="text-muted-foreground"
 							>{app.company} · Updated {date(app.updated_at)}</small
 						></span
 					><StatusBadge status={app.status} /><ArrowUpRight size={17} /></a
@@ -66,10 +68,10 @@
 		<section class="panel">
 			<h2>Interviews</h2>
 			{#each data.interviews as i}<a
-					class="block border-b border-line py-4"
+					class="block border-b border-border py-4"
 					href={`/jobs/${i.job_id}?candidate=${data.candidate.id}`}
 					><strong>{i.title}</strong>
-					<p class="text-sm text-muted mb-0">
+					<p class="text-sm text-muted-foreground mb-0">
 						{i.company} · {date(i.starts_at, data.user.timezone, true)} · {i.state}
 					</p></a
 				>{:else}<p class="small-empty-text">No interviews recorded.</p>{/each}
@@ -80,7 +82,7 @@
 			<h2>Profile</h2>
 			<dl class="space-y-4 text-sm">
 				<div>
-					<dt class="text-muted">Email</dt>
+					<dt class="text-muted-foreground">Email</dt>
 					<dd>
 						<a class="inline-link break-all" href={`mailto:${data.candidate.email}`}
 							>{data.candidate.email}</a
@@ -88,19 +90,19 @@
 					</dd>
 				</div>
 				<div>
-					<dt class="text-muted">Phone</dt>
+					<dt class="text-muted-foreground">Phone</dt>
 					<dd>{data.candidate.phone || 'Not provided'}</dd>
 				</div>
 				<div>
-					<dt class="text-muted">Location</dt>
+					<dt class="text-muted-foreground">Location</dt>
 					<dd>{data.candidate.location || 'Not provided'}</dd>
 				</div>
 				<div>
-					<dt class="text-muted">Timezone</dt>
+					<dt class="text-muted-foreground">Timezone</dt>
 					<dd>{data.candidate.timezone}</dd>
 				</div>
 			</dl>
-			<p class="mt-5 whitespace-pre-line text-sm">{data.candidate.bio}</p>
+			<p class="mt-5 whitespace-pre-border text-sm">{data.candidate.bio}</p>
 			<div class="job-tags">
 				{#each tags(data.candidate.skills) as skill}<span>{skill}</span>{/each}
 			</div>
@@ -108,7 +110,7 @@
 		<section class="panel">
 			<h2>Resume library</h2>
 			{#each data.files as f}<a
-					class="flex gap-3 items-center py-3 border-b border-line text-sm break-all"
+					class="flex gap-3 items-center py-3 border-b border-border text-sm break-all"
 					href={`/api/profile-files/${f.id}`}
 					><FileText size={20} />{f.name}<ArrowUpRight size={16} /></a
 				>{:else}<p class="small-empty-text">
@@ -118,12 +120,14 @@
 		<section class="panel">
 			<div class="section-heading">
 				<h2>Assigned jobs</h2>
-				<a class="text-button" href="/admin">Manage ↗</a>
+				<Button variant="ghost" size="sm" class="text-button" href="/admin">Manage ↗</Button>
 			</div>
 			{#each data.assigned as job}<a
-					class="block py-3 border-b border-line text-sm"
+					class="block py-3 border-b border-border text-sm"
 					href={`/jobs/${job.id}?candidate=${data.candidate.id}`}
-					><strong>{job.title}</strong><small class="block text-muted">{job.company}</small></a
+					><strong>{job.title}</strong><small class="block text-muted-foreground"
+						>{job.company}</small
+					></a
 				>{:else}<p class="small-empty-text">
 					No individual assignments. Jobs shared with all clients are also available.
 				</p>{/each}

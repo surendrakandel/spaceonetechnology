@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, Input } from '@usecase-ui/svelte';
+
 	import { Search, ArrowUpRight, Download, Users } from '@lucide/svelte';
 	import { date, initials, downloadText } from '$lib/client';
 	let { data } = $props();
@@ -72,18 +74,20 @@
 		<h1>Candidates<span class="heading-dot">.</span></h1>
 		<p class="muted">Know who is moving forward, and who could use a hand.</p>
 	</div>
-	<a class="button primary" href="/invitations">Invite a client <ArrowUpRight size={17} /></a>
+	<Button variant="default" class="button primary" href="/invitations"
+		>Invite a client <ArrowUpRight size={17} /></Button
+	>
 </div>
 <section class="panel">
 	<div class="flex flex-wrap items-center gap-3 mb-6">
 		<div class="search-input grow">
-			<Search size={18} /><input
+			<Search size={18} /><Input
 				aria-label="Search candidates"
 				placeholder="Search name, skill, email, or location"
 				bind:value={query}
 			/>
 		</div>
-		<select class="w-auto" aria-label="Rank candidates" bind:value={sort}
+		<select class="du-select w-auto" aria-label="Rank candidates" bind:value={sort}
 			><option value="applied">Most applications</option><option value="interviews_completed"
 				>Most completed interviews</option
 			><option value="offers">Most offers</option><option value="joined">Recently joined</option
@@ -91,32 +95,34 @@
 				>Recent application activity</option
 			><option value="overdue">Most overdue tasks</option><option value="name">Name A–Z</option
 			></select
-		><select class="w-auto" aria-label="Account status" bind:value={accountFilter}
+		><select class="du-select w-auto" aria-label="Account status" bind:value={accountFilter}
 			><option value="all">All accounts</option><option value="active">Active</option><option
 				value="suspended">Suspended</option
 			></select
-		><button class="button secondary" onclick={exportCsv}><Download size={16} />Export</button>
+		><Button variant="outline" type="button" class="button secondary" onclick={exportCsv}
+			><Download size={16} />Export</Button
+		>
 	</div>
-	<p class="text-sm text-muted">
+	<p class="text-sm text-muted-foreground">
 		{results.length} candidates · Counts reflect recorded activity, including applications later rejected
 		or withdrawn.
 	</p>
 	<div class="overflow-x-auto">
-		<table class="w-full text-left text-sm">
-			<thead class="border-b border-line text-muted"
+		<table class="w-w-full text-left text-sm">
+			<thead class="border-b border-border text-muted-foreground"
 				><tr
 					><th class="py-4 pr-4 font-medium">Candidate</th><th class="p-4 font-medium">Applied</th
 					><th class="p-4 font-medium">Interviews done</th><th class="p-4 font-medium">Offers</th
 					><th class="p-4 font-medium">Joined</th><th class="p-4 font-medium">Last update</th></tr
 				></thead
 			><tbody
-				>{#each results.slice(0, limit) as c}<tr class="border-b border-line hover:bg-canvas"
+				>{#each results.slice(0, limit) as c}<tr class="border-b border-border hover:bg-background"
 						><td class="py-5 pr-4"
 							><a class="flex items-center gap-3" href={`/candidates/${c.id}`}
 								><span class="avatar shrink-0">{initials(c.name)}</span><span
-									><strong class="block">{c.name}</strong><small class="text-muted"
+									><strong class="block">{c.name}</strong><small class="text-muted-foreground"
 										>{c.headline || c.email}</small
-									>{#if c.account_status === 'suspended'}<small class="block text-rust"
+									>{#if c.account_status === 'suspended'}<small class="block text-accent"
 											>Suspended</small
 										>{/if}</span
 								></a
@@ -127,14 +133,17 @@
 							>{date(c.created_at)}</td
 						><td class="p-4 whitespace-nowrap">{date(c.last_activity)}</td></tr
 					>{:else}<tr
-						><td colspan="6" class="py-12 text-center text-muted"
+						><td colspan="6" class="py-12 text-center text-muted-foreground"
 							><Users class="mx-auto mb-3" />No candidates match this view.</td
 						></tr
 					>{/each}</tbody
 			>
 		</table>
 	</div>
-	{#if results.length > limit}<button class="button secondary mt-6" onclick={() => (limit += 25)}
-			>Load more candidates</button
+	{#if results.length > limit}<Button
+			variant="outline"
+			type="button"
+			class="button secondary mt-6"
+			onclick={() => (limit += 25)}>Load more candidates</Button
 		>{/if}
 </section>

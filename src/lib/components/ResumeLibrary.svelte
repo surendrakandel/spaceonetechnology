@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button } from '@usecase-ui/svelte';
+
 	import { invalidateAll } from '$app/navigation';
 	import { api, fileSize, date } from '$lib/client';
 	import { FileText, Trash2, Download, Upload } from '@lucide/svelte';
@@ -45,7 +47,7 @@
 		<h2>Your resume library</h2>
 		<FileText size={21} />
 	</div>
-	<p class="text-sm text-muted leading-7">
+	<p class="text-sm text-muted-foreground leading-7">
 		Keep your base resumes here. Add a copy to a job from its Documents tab; each job keeps the
 		exact version you chose.
 	</p>
@@ -58,18 +60,31 @@
 			<div class="file-info">
 				<strong>{file.name}</strong><small>{fileSize(file.size)} · {date(file.created_at)}</small>
 			</div>
-			<a
+			<Button
+				variant="default"
 				class="icon-button"
 				href={`/api/profile-files/${file.id}`}
-				aria-label={`Download ${file.name}`}><Download size={17} /></a
-			>{#if remove === file.id}<button
+				aria-label={`Download ${file.name}`}><Download size={17} /></Button
+			>{#if remove === file.id}<Button
+					variant="ghost"
+					type="button"
+					size="sm"
 					class="text-button danger"
 					disabled={busy}
-					onclick={() => del(file.id)}>Confirm remove</button
-				><button class="text-button" onclick={() => (remove = '')}>Cancel</button>{:else}<button
+					onclick={() => del(file.id)}>Confirm remove</Button
+				><Button
+					variant="ghost"
+					type="button"
+					size="sm"
+					class="text-button"
+					onclick={() => (remove = '')}>Cancel</Button
+				>{:else}<Button
+					variant="ghost"
+					type="button"
+					size="icon"
 					class="icon-button"
 					aria-label={`Remove ${file.name}`}
-					onclick={() => (remove = file.id)}><Trash2 size={16} /></button
+					onclick={() => (remove = file.id)}><Trash2 size={16} /></Button
 				>{/if}
 		</div>{:else}<p class="small-empty-text">
 			Start with your strongest resume. You can tailor a copy for each opportunity.

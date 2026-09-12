@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, Card, Input, Textarea } from '@usecase-ui/svelte';
+
 	import CandidateCalendar from '$lib/components/CandidateCalendar.svelte';
 	import GoogleInterview from '$lib/components/GoogleInterview.svelte';
 	import { goto } from '$app/navigation';
@@ -86,9 +88,10 @@
 
 <svelte:head><title>{data.job.title} at {data.job.company} · Space One</title></svelte:head>
 <a class="back-link" href="/jobs"><ArrowLeft size={16} />All opportunities</a>
-{#if data.user.role !== 'client'}<div class="panel mb-6 flex flex-wrap items-end gap-4">
-		<label class="grow mb-0"
+{#if data.user.role !== 'client'}<Card class="panel mb-6 flex flex-row flex-wrap items-end gap-4">
+		<label class="field-label w-full min-w-0 md:flex-1 mb-0"
 			>View application for a candidate<select
+				class="du-select"
 				value={data.candidate || ''}
 				onchange={(e) =>
 					goto(
@@ -98,8 +101,8 @@
 				>{#each data.candidates as c}<option value={c.id}>{c.name} · {c.email}</option
 					>{/each}</select
 			></label
-		><a class="button secondary" href="/admin">Edit listing ↗</a>
-	</div>{/if}
+		><Button variant="outline" class="button secondary" href="/admin">Edit listing ↗</Button>
+	</Card>{/if}
 {#if data.job.quality_state === 'needs_review'}<p class="alert">
 		This listing is held for review. Complete and verify its required details in Manage jobs before
 		publishing.
@@ -117,7 +120,7 @@
 	</div>
 	<button
 		class:chosen={!!data.job.saved}
-		class="button secondary"
+		class="du-btn du-btn-outline button secondary"
 		disabled={busy === 'status' || !canManageApplication}
 		onclick={() => update({ saved: !data.job.saved })}
 		><Bookmark size={16} fill={data.job.saved ? 'currentColor' : 'none'} />{data.job.saved
@@ -138,6 +141,7 @@
 	<section>
 		<div class="detail-tabs" role="group" aria-label="Job page section">
 			{#each [{ id: 'overview', label: 'Job overview' }, { id: 'documents', label: 'Documents', count: data.attachments.length }, { id: 'activity', label: 'Activity history', count: data.activity.length }] as t}<button
+					class="du-btn du-btn-ghost"
 					class:active={tab === t.id}
 					disabled={!canManageApplication && t.id !== 'overview'}
 					onclick={() => (tab = t.id)}
@@ -167,7 +171,7 @@
 					<div><span>Application deadline</span><strong>{date(data.job.deadline)}</strong></div>
 				</div>
 			</article>
-		{:else if tab === 'documents'}<div class="panel">
+		{:else if tab === 'documents'}<Card class="panel">
 				<div class="section-heading">
 					<h2>Your documents</h2>
 					<Paperclip size={18} />
@@ -189,12 +193,14 @@
 							);
 						}}
 					>
-						<label class="grow mb-0"
-							>Use a saved resume<select name="file_id"
+						<label class="field-label grow mb-0"
+							>Use a saved resume<select class="du-select" name="file_id"
 								>{#each data.profileFiles as file}<option value={file.id}>{file.name}</option
 									>{/each}</select
 							></label
-						><button class="button secondary" disabled={!!busy}>Add a copy</button>
+						><Button variant="outline" type="submit" class="button secondary" disabled={!!busy}
+							>Add a copy</Button
+						>
 					</form>{/if}
 				<div class="upload-grid">
 					<label class="upload-box"
@@ -235,29 +241,41 @@
 									)}{kind === 'resume' && index === 0 ? ' · Latest version' : ''}</small
 								>
 							</div>
-							<a
+							<Button
+								variant="default"
 								class="icon-button"
 								href={`/api/files/${file.id}`}
-								aria-label={`Download ${file.name}`}><Download size={17} /></a
-							>{#if deleting === file.id}<button
+								aria-label={`Download ${file.name}`}><Download size={17} /></Button
+							>{#if deleting === file.id}<Button
+									variant="ghost"
+									type="button"
+									size="sm"
 									class="text-button danger"
 									disabled={!!busy}
 									onclick={() =>
 										action('delete', () => api(`files/${file.id}`, 'DELETE'), 'File removed.')}
-									>Remove</button
-								><button class="text-button" onclick={() => (deleting = '')}>Cancel</button
-								>{:else}<button
+									>Remove</Button
+								><Button
+									variant="ghost"
+									type="button"
+									size="sm"
+									class="text-button"
+									onclick={() => (deleting = '')}>Cancel</Button
+								>{:else}<Button
+									variant="ghost"
+									type="button"
+									size="icon"
 									class="icon-button"
 									aria-label={`Remove ${file.name}`}
-									onclick={() => (deleting = file.id)}><Trash2 size={16} /></button
+									onclick={() => (deleting = file.id)}><Trash2 size={16} /></Button
 								>{/if}
 						</div>{:else}<p class="small-empty-text">
 							{kind === 'resume'
 								? 'No resumes yet. Upload your tailored resume here.'
 								: 'No proof yet. Add a screenshot after submitting your application.'}
 						</p>{/each}{/each}
-			</div>
-		{:else}<div class="panel">
+			</Card>
+		{:else}<Card class="panel">
 				<h2>Activity history</h2>
 				<div class="timeline">
 					{#each data.activity as event}<div class="timeline-event">
@@ -270,18 +288,22 @@
 							Your updates will appear here as you make progress.
 						</p>{/each}
 				</div>
-			</div>{/if}
+			</Card>{/if}
 		{#if canManageApplication}<section class="panel mt-6">
 				<div class="section-heading">
 					<h2>Conversation</h2>
-					<span class="text-xs text-muted">Shared with your Space One team</span>
+					<span class="text-xs text-muted-foreground">Shared with your Space One team</span>
 				</div>
-				{#each data.comments as comment}<div class="py-4 border-b border-line">
-						<strong class="text-sm">{comment.author}</strong><small class="ml-2 text-muted"
+				{#each data.comments as comment}<div class="py-4 border-b border-border">
+						<strong class="text-sm">{comment.author}</strong><small
+							class="ml-2 text-muted-foreground"
 							>{comment.role} · {date(comment.created_at, data.user.timezone, true)}</small
 						>
-						<p class="whitespace-pre-line text-sm mt-2 mb-0">{comment.body}</p>
-						{#if comment.author_id === data.user.id}<button
+						<p class="whitespace-pre-border text-sm mt-2 mb-0">{comment.body}</p>
+						{#if comment.author_id === data.user.id}<Button
+								variant="ghost"
+								type="button"
+								size="sm"
 								class="text-button mt-2"
 								disabled={!!busy}
 								onclick={() =>
@@ -289,7 +311,7 @@
 										'comment',
 										() => api(`comments/${comment.id}`, 'DELETE'),
 										'Comment removed.'
-									)}>Remove</button
+									)}>Remove</Button
 							>{/if}
 					</div>{:else}<p class="small-empty-text">
 						Ask a question, share a recruiter update, or leave context for your coordinator.
@@ -310,8 +332,11 @@
 						if (!error) form.reset();
 					}}
 				>
-					<label>Message<textarea name="body" required maxlength="5000" rows="3"></textarea></label
-					><button class="button primary" disabled={!!busy}>Post comment</button>
+					<label class="field-label"
+						>Message<Textarea name="body" required maxlength={5000} rows={3}></Textarea></label
+					><Button variant="default" type="submit" class="button primary" disabled={!!busy}
+						>Post comment</Button
+					>
 				</form>
 			</section>
 			<div class="mt-6">
@@ -328,12 +353,15 @@
 			<section class="panel interview-panel">
 				<div class="section-heading">
 					<h2>Interviews <span class="count">{data.interviews.length}</span></h2>
-					<button
+					<Button
+						variant="ghost"
+						type="button"
+						size="sm"
 						class="text-button"
 						onclick={() => {
 							editing = undefined;
 							schedule = true;
-						}}><Plus size={16} />Add interview</button
+						}}><Plus size={16} />Add interview</Button
 					>
 				</div>
 				{#each data.interviews as item}<div
@@ -368,7 +396,10 @@
 								</p>{/if}{#if item.notes}<p class="interview-notes">{item.notes}</p>{/if}
 						</div>
 						<div class="interview-actions">
-							{#if item.state === 'scheduled'}<button
+							{#if item.state === 'scheduled'}<Button
+									variant="ghost"
+									type="button"
+									size="sm"
 									class="text-button"
 									disabled={!!busy}
 									onclick={() =>
@@ -376,20 +407,27 @@
 											'complete',
 											() => api(`interviews/${item.id}`, 'PATCH', { state: 'completed' }),
 											'Interview marked completed.'
-										)}>Mark completed</button
+										)}>Mark completed</Button
 								>{/if}
-							<a
+							<Button
+								variant="default"
 								class="icon-button"
 								href={`/api/interviews/${item.id}/calendar`}
-								aria-label="Download calendar event"><Download size={16} /></a
-							><button
+								aria-label="Download calendar event"><Download size={16} /></Button
+							><Button
+								variant="ghost"
+								type="button"
+								size="icon"
 								class="icon-button"
 								aria-label="Edit interview"
 								onclick={() => {
 									editing = item;
 									schedule = true;
-								}}><Pencil size={16} /></button
-							>{#if deleting === item.id}<button
+								}}><Pencil size={16} /></Button
+							>{#if deleting === item.id}<Button
+									variant="ghost"
+									type="button"
+									size="sm"
 									class="text-button danger"
 									disabled={!!busy}
 									onclick={() =>
@@ -397,12 +435,20 @@
 											'delete',
 											() => api(`interviews/${item.id}`, 'DELETE'),
 											'Interview removed.'
-										)}>Remove</button
-								><button class="text-button" onclick={() => (deleting = '')}>Cancel</button
-								>{:else}<button
+										)}>Remove</Button
+								><Button
+									variant="ghost"
+									type="button"
+									size="sm"
+									class="text-button"
+									onclick={() => (deleting = '')}>Cancel</Button
+								>{:else}<Button
+									variant="ghost"
+									type="button"
+									size="icon"
 									class="icon-button"
 									aria-label="Remove interview"
-									onclick={() => (deleting = item.id)}><Trash2 size={16} /></button
+									onclick={() => (deleting = item.id)}><Trash2 size={16} /></Button
 								>{/if}
 						</div>
 					</div>{:else}<div class="inline-empty">
@@ -421,8 +467,9 @@
 				<h3>{data.candidate ? 'Candidate application' : 'Your application'}</h3>
 				<StatusBadge status={data.job.status} />
 			</div>
-			<label
+			<label class="field-label"
 				>Application status<select
+					class="du-select"
 					value={data.job.status}
 					disabled={busy === 'status' || !canManageApplication}
 					onchange={(e) => update({ status: e.currentTarget.value as Status })}
@@ -430,15 +477,15 @@
 							value={s}>{statusLabel[s]}</option
 						>{/each}</select
 				></label
-			><label
-				>Follow up on<input
+			><label class="field-label"
+				>Follow up on<Input
 					type="date"
 					value={data.job.follow_up || ''}
 					disabled={busy === 'status' || !canManageApplication}
 					onchange={(e) => update({ follow_up: e.currentTarget.value || null })}
 				/></label
-			><label
-				>Applied on<input
+			><label class="field-label"
+				>Applied on<Input
 					type="date"
 					value={data.job.applied_at?.slice(0, 10) || ''}
 					disabled={busy === 'status' || !canManageApplication}
@@ -453,11 +500,12 @@
 					interview.
 				</p>{/if}
 			<div class="apply-divider"></div>
-			<a
-				class="button primary full"
+			<Button
+				variant="default"
+				class="button primary w-full"
 				href={data.job.application_url}
 				target="_blank"
-				rel="noopener noreferrer">Open application site <ArrowUpRight size={17} /></a
+				rel="noopener noreferrer">Open application site <ArrowUpRight size={17} /></Button
 			>
 			<p class="form-footnote">
 				Opens the employer’s site. After applying, update your status and save a screenshot here.
@@ -479,8 +527,12 @@
 					><Check size={12} /></span
 				>Save your confirmation screenshot
 			</p>
-			<button class="text-button" onclick={() => (tab = 'documents')}
-				>Manage documents <ArrowUpRight size={14} /></button
+			<Button
+				variant="ghost"
+				type="button"
+				size="sm"
+				class="text-button"
+				onclick={() => (tab = 'documents')}>Manage documents <ArrowUpRight size={14} /></Button
 			>
 		</section>
 	</aside>

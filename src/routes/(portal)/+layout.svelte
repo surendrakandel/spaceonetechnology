@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button } from '@usecase-ui/svelte';
+
 	import { page } from '$app/state';
 	import { goto, invalidateAll } from '$app/navigation';
 	import {
@@ -56,15 +58,19 @@
 <div class="workspace">
 	<aside class:mobile-open={menu} class="sidebar overflow-y-auto">
 		<a
-				class="brand text-2xl flex items-center gap-2"
-				href="/"
-				aria-label="Space One Technology home"
-			>
-				<img src="./images/spaceonetechnology-logo.png" alt="Space One Technology" class="h-auto max-w-[175px]" />
+			class="brand text-2xl flex items-center gap-2"
+			href="/"
+			aria-label="Space One Technology home"
+		>
+			<img
+				src="/images/spaceonetechnology-logo.png"
+				alt="Space One Technology"
+				class="h-auto max-w-[175px]"
+			/>
 
-				<span class="sr-only">
-					spaceonetechnology<span class="brand-dot">.</span>
-				</span>
+			<span class="sr-only">
+				spaceonetechnology<span class="brand-dot">.</span>
+			</span>
 		</a>
 		<div class="workspace-label my-6 text-xs">
 			<span class="tiny-square"></span>
@@ -73,6 +79,7 @@
 		<nav aria-label="Main navigation">
 			{#each links as link}<a
 					class:active={page.url.pathname.startsWith(link.href)}
+					aria-current={page.url.pathname.startsWith(link.href) ? 'page' : undefined}
 					href={link.href}
 					onclick={() => (menu = false)}
 					><link.icon size={19} />{link.label}{#if page.url.pathname.startsWith(link.href)}<span
@@ -107,12 +114,18 @@
 							: 'Client account'}</small
 				>
 			</div>
-			<button class="icon-button" aria-label="Sign out" onclick={logout}
-				><LogOut size={17} /></button
+			<Button
+				variant="ghost"
+				type="button"
+				size="icon"
+				class="icon-button"
+				aria-label="Sign out"
+				onclick={logout}><LogOut size={17} /></Button
 			>
 		</div>
 	</aside>
 	{#if menu}<button
+			type="button"
 			class="mobile-scrim"
 			aria-label="Close navigation"
 			onclick={() => (menu = false)}
@@ -120,10 +133,14 @@
 	<div class="main-wrap">
 		<header class="topbar">
 			<div class="breadcrumb">
-				<button
-					class="icon-button mobile-toggle"
+				<Button
+					variant="ghost"
+					type="button"
+					size="icon"
+					class="icon-button mobile-toggle hidden max-[760px]:inline-flex"
 					aria-label="Toggle navigation"
-					onclick={() => (menu = !menu)}><Menu size={20} /></button
+					aria-expanded={menu}
+					onclick={() => (menu = !menu)}><Menu size={20} /></Button
 				><PanelLeftClose size={17} class="desktop-only" /><span class="breadcrumb-divider">/</span
 				><span>Workspace</span><span class="breadcrumb-divider">/</span><strong
 					>{page.url.pathname.startsWith('/jobs/')

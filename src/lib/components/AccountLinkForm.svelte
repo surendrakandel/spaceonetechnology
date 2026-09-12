@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, Input } from '@usecase-ui/svelte';
+
 	import AccountStory from './AccountStory.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { api, downloadText } from '$lib/client';
@@ -43,11 +45,13 @@
 	}
 </script>
 
-<div class="min-h-screen grid lg:grid-cols-[47%_53%] bg-paper">
+<div class="min-h-screen grid lg:grid-cols-[47%_53%] bg-card">
 	<AccountStory />
 	<main class="px-6 py-10 lg:p-16 flex items-center justify-center">
-		<div class="w-full max-w-md">
-			<a class="text-button mb-10" href="/client/login">← Back to sign in</a>
+		<div class="w-w-full max-w-md">
+			<Button variant="ghost" size="sm" class="text-button mb-10" href="/client/login"
+				>← Back to sign in</Button
+			>
 			<p class="eyebrow">
 				{mode === 'invite' ? `${invite?.role || 'Workspace'} INVITATION` : 'ACCOUNT ACCESS'}
 			</p>
@@ -65,26 +69,30 @@
 					role="status"
 				>
 					{message}
-				</p>{:else if recovery}<p class="text-muted leading-7">
+				</p>{:else if recovery}<p class="text-muted-foreground leading-7">
 					Save this recovery key in your password manager. It gives you another way back into your
 					account.
 				</p>
-				<code class="recovery-key">{recovery}</code><button
-					class="button secondary full"
+				<code class="recovery-key">{recovery}</code><Button
+					variant="outline"
+					type="button"
+					class="button secondary w-full"
 					onclick={() => {
 						downloadText('space-one-recovery-key.txt', recovery);
 						saved = true;
-					}}><Download size={16} />Download key</button
+					}}><Download size={16} />Download key</Button
 				><label class="checkbox-row"
 					><input type="checkbox" bind:checked={saved} />I have saved my recovery key.</label
-				><button
-					class="button primary full"
+				><Button
+					variant="default"
+					type="button"
+					class="button primary w-full"
 					disabled={!saved}
 					onclick={async () => {
 						await invalidateAll();
 						await goto('/dashboard');
-					}}>Open dashboard <ArrowRight size={17} /></button
-				>{:else}<p class="text-muted leading-7 mb-7">
+					}}>Open dashboard <ArrowRight size={17} /></Button
+				>{:else}<p class="text-muted-foreground leading-7 mb-7">
 					{mode === 'invite'
 						? 'Complete your profile to join the workspace.'
 						: mode === 'forgot-password'
@@ -92,46 +100,55 @@
 							: 'Choose a password with at least 12 characters.'}
 				</p>
 				<form onsubmit={submit}>
-					{#if mode === 'invite'}<label
-							>Full name<input
+					{#if mode === 'invite'}<label class="field-label"
+							>Full name<Input
 								name="name"
 								autocomplete="name"
 								required
-								minlength="2"
-								maxlength="100"
+								minlength={2}
+								maxlength={100}
 							/></label
-						><label>Email address<input type="email" value={invite?.email} readonly /></label><label
-							>Phone number<input
+						><label class="field-label"
+							>Email address<Input type="email" value={invite?.email} readonly /></label
+						><label class="field-label"
+							>Phone number<Input
 								name="phone"
 								type="tel"
 								autocomplete="tel"
 								required
-								minlength="7"
-								maxlength="30"
+								minlength={7}
+								maxlength={30}
 							/></label
-						>{:else if mode === 'forgot-password'}<label
-							>Email address<input name="email" type="email" autocomplete="email" required /></label
-						>{/if}{#if mode !== 'forgot-password'}<label
-							>Password<input
+						>{:else if mode === 'forgot-password'}<label class="field-label"
+							>Email address<Input name="email" type="email" autocomplete="email" required /></label
+						>{/if}{#if mode !== 'forgot-password'}<label class="field-label"
+							>Password<Input
 								name="password"
 								type="password"
 								autocomplete="new-password"
 								required
-								minlength="12"
-								maxlength="128"
+								minlength={12}
+								maxlength={128}
 							/></label
-						>{/if}<button class="button primary full" disabled={busy}
+						>{/if}<Button
+						variant="default"
+						type="submit"
+						class="button primary w-full"
+						disabled={busy}
 						>{busy
 							? 'Please wait…'
 							: mode === 'invite'
 								? 'Create my account'
 								: mode === 'forgot-password'
 									? 'Send reset link'
-									: 'Reset password'}<ArrowRight size={17} /></button
+									: 'Reset password'}<ArrowRight size={17} /></Button
 					>
 				</form>
-				{#if mode === 'forgot-password'}<a class="text-button mt-6" href="/client/recover"
-						>Use a recovery key instead</a
+				{#if mode === 'forgot-password'}<Button
+						variant="ghost"
+						size="sm"
+						class="text-button mt-6"
+						href="/client/recover">Use a recovery key instead</Button
 					>{/if}{/if}
 		</div>
 	</main>

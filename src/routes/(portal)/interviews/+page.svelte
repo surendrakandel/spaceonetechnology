@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button } from '@usecase-ui/svelte';
+
 	import CandidateCalendar from '$lib/components/CandidateCalendar.svelte';
 	import { CalendarDays, ArrowUpRight, Download, Clock3 } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
@@ -49,12 +51,13 @@
 		own={true}
 		timezone={data.user.timezone}
 		meetings={data.interviews}
-	/>{:else}<p class="text-sm text-muted">
+	/>{:else}<p class="text-sm text-muted-foreground">
 		Open a <a class="inline-link" href="/candidates">candidate’s calendar</a> to review their shared availability
 		and Google busy times.
 	</p>{/if}
 <div class="status-tabs standalone-tabs">
 	{#each ['scheduled', 'completed', 'cancelled', 'all'] as tab}<button
+			class="du-btn du-btn-ghost"
 			class:active={interviewFilter === tab}
 			onclick={() => (interviewFilter = tab)}
 			>{tab === 'all' ? 'All interviews' : tab[0].toUpperCase() + tab.slice(1)}</button
@@ -94,18 +97,24 @@
 						: ''}</small
 				>{#if interview.notes}<p class="interview-notes">{interview.notes}</p>{/if}
 			</div>
-			{#if interview.state === 'scheduled'}<button
+			{#if interview.state === 'scheduled'}<Button
+					variant="outline"
+					type="button"
 					class="button secondary"
 					disabled={!!busy}
 					onclick={() => complete(interview.id)}
-					>{busy === interview.id ? 'Saving…' : 'Mark completed'}</button
+					>{busy === interview.id ? 'Saving…' : 'Mark completed'}</Button
 				>{/if}
-			<a class="button secondary" href={`/api/interviews/${interview.id}/calendar`}
-				><Download size={16} /><span>Calendar</span></a
-			><a
+			<Button
+				variant="outline"
+				class="button secondary"
+				href={`/api/interviews/${interview.id}/calendar`}
+				><Download size={16} /><span>Calendar</span></Button
+			><Button
+				variant="default"
 				class="icon-button"
 				href={`/jobs/${interview.job_id}${data.user.role === 'client' ? '' : '?candidate=' + interview.user_id}`}
-				aria-label="View interview details"><ArrowUpRight size={20} /></a
+				aria-label="View interview details"><ArrowUpRight size={20} /></Button
 			>
 		</article>{:else}<div class="empty-state">
 			<CalendarDays size={35} strokeWidth={1.3} />
@@ -117,6 +126,8 @@
 			<p>
 				Add interviews from a job’s page, then keep your schedule and preparation notes together.
 			</p>
-			<a class="button primary" href="/jobs">Explore opportunities <ArrowUpRight size={16} /></a>
+			<Button variant="default" class="button primary" href="/jobs"
+				>Explore opportunities <ArrowUpRight size={16} /></Button
+			>
 		</div>{/each}
 </section>

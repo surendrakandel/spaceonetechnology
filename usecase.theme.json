@@ -1,0 +1,43 @@
+{
+	"$schema": "./node_modules/@usecase-ui/svelte/dist/schemas/theme.schema.json",
+	"palette": "sage",
+	"appearance": "light",
+	"typography": {
+		"fontFamily": "'DM Sans Variable', sans-serif",
+		"headingFont": "'DM Sans Variable', sans-serif",
+		"lineHeight": 1.625
+	},
+	"layout": {
+		"containerWidth": "100rem",
+		"contentWidth": "48rem",
+		"pagePadding": "clamp(1.25rem, 4vw, 4rem)",
+		"density": 1
+	},
+	"controls": {
+		"height": "3rem",
+		"fontSize": "1rem"
+	},
+	"shape": {
+		"radius": ".75rem"
+	},
+	"colors": {
+		"base-200": "#f7f8f5",
+		"accent": "#a45135",
+		"accent-content": "#ffffff"
+	},
+	"motion": {
+		"enabled": true,
+		"entrance": "none",
+		"exit": "fade-out",
+		"duration": "240ms"
+	},
+	"tokens": {
+		"--radius-field": ".5rem",
+		"--card-padding": "1.5rem",
+		"--sidebar-width": "15.5rem",
+		"--font-serif": "Georgia, 'Times New Roman', serif",
+		"--text-6xl": "clamp(3rem, 6.4vw, 5.6rem)",
+		"--text-5xl": "clamp(2.5rem, 5vw, 4.75rem)",
+		"--text-4xl": "clamp(2rem, 3.4vw, 3.3rem)"
+	}
+}

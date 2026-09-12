@@ -106,3 +106,7 @@ No production migration, remote deployment, live invitation, or DNS change is pe
 See [Google Calendar setup](docs/GOOGLE-CALENDAR.md) for Google OAuth credentials, consent-screen configuration, encrypted token storage, the new D1 migration, and the live acceptance workflow. The current configured production hostname is `spaceone.tech`.
 
 Application totals use submission history/status and recorded interviews, including legacy records without `applied_at`. Operator totals and shared interviews cover client accounts rather than the operator's personal applications. Interview totals count rounds explicitly marked completed. See [production review](docs/PRODUCTION-REVIEW.md) for verification and remaining deployment steps.
+
+## UI and theme
+
+The public site, authentication screens, and workspace use Usecase UI with the Sage theme. Edit `usecase.theme.json` for shared typography, control sizing, colors, and layout. See [the design system guide](docs/DESIGN_SYSTEM.md) for component usage, installation, updates, and browser validation.

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, Card, Input, Textarea } from '@usecase-ui/svelte';
+
 	import { focusDialog } from '$lib/focus';
 	import { invalidateAll } from '$app/navigation';
 	import {
@@ -74,7 +76,9 @@
 		<h1>Manage jobs<span class="heading-dot">.</span></h1>
 		<p class="muted">Publish roles, assign clients, and see application progress.</p>
 	</div>
-	<button class="button primary" onclick={() => (edit = null)}><Plus size={17} />Add job</button>
+	<Button variant="default" type="button" class="button primary" onclick={() => (edit = null)}
+		><Plus size={17} />Add job</Button
+	>
 </div>
 {#if error}<p class="alert error" role="alert">{error}</p>{/if}{#if success}<p
 		class="alert success"
@@ -83,16 +87,19 @@
 		<Check size={16} />{success}
 	</p>{/if}
 <div class="status-tabs standalone-tabs">
-	{#each ['jobs', 'applications'] as t}<button class:active={tab === t} onclick={() => (tab = t)}
+	{#each ['jobs', 'applications'] as t}<button
+			class="du-btn du-btn-ghost"
+			class:active={tab === t}
+			onclick={() => (tab = t)}
 			>{t[0].toUpperCase() + t.slice(1)}{#if t === 'jobs'}
 				<span>{data.overview.jobs.length}</span>{/if}</button
 		>{/each}
-	<a class="text-button" href="/candidates">Candidates ↗</a>
-	<a class="text-button" href="/imports">Import jobs ↗</a>
+	<Button variant="ghost" size="sm" class="text-button" href="/candidates">Candidates ↗</Button>
+	<Button variant="ghost" size="sm" class="text-button" href="/imports">Import jobs ↗</Button>
 </div>
 {#if tab === 'jobs'}<section class="panel">
 		<div class="search-input admin-search">
-			<Search size={17} /><input
+			<Search size={17} /><Input
 				aria-label="Search managed jobs"
 				bind:value={query}
 				placeholder="Search your jobs…"
@@ -114,25 +121,32 @@
 							: `${data.overview.assignments.filter((a) => a.job_id === job.id).length} assigned clients`}</small
 					>
 				</div>
-				<button
+				<Button
+					variant="outline"
+					type="button"
 					class="button secondary"
 					onclick={() => {
 						assign = job;
 						selected = data.overview.assignments
 							.filter((a) => a.job_id === job.id)
 							.map((a) => a.user_id);
-					}}><Users size={15} />Assign</button
-				><button class="button secondary" onclick={() => (edit = job)}
-					><Pencil size={15} />Edit</button
+					}}><Users size={15} />Assign</Button
+				><Button
+					variant="outline"
+					type="button"
+					class="button secondary"
+					onclick={() => (edit = job)}><Pencil size={15} />Edit</Button
 				>
 			</div>{:else}<div class="empty-state">
 				<Plus size={30} />
 				<h3>Start with a great opportunity</h3>
 				<p>Add your first job, or import your jobs from a JSON file.</p>
-				<button class="button primary" onclick={() => (edit = null)}>Add a job</button>
+				<Button variant="default" type="button" class="button primary" onclick={() => (edit = null)}
+					>Add a job</Button
+				>
 			</div>{/each}
 	</section>
-{:else if tab === 'applications'}<div class="panel table-panel">
+{:else if tab === 'applications'}<Card class="panel table-panel">
 		<table>
 			<thead><tr><th>Client</th><th>Opportunity</th><th>Status</th><th>Updated</th></tr></thead
 			><tbody
@@ -149,7 +163,7 @@
 					>{/each}</tbody
 			>
 		</table>
-	</div>
+	</Card>
 {/if}
 {#if edit !== undefined}<div class="modal-backdrop">
 		<div
@@ -158,12 +172,17 @@
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="job-form-title"
-			tabindex="-1"
+			tabindex={-1}
 		>
 			<div class="section-heading">
 				<h2 id="job-form-title">{edit ? 'Edit job' : 'Add an opportunity'}</h2>
-				<button class="icon-button" aria-label="Close job form" onclick={() => (edit = undefined)}
-					><X size={20} /></button
+				<Button
+					variant="ghost"
+					type="button"
+					size="icon"
+					class="icon-button"
+					aria-label="Close job form"
+					onclick={() => (edit = undefined)}><X size={20} /></Button
 				>
 			</div>
 			{#if error}<p class="alert error" role="alert">
@@ -176,89 +195,92 @@
 				</div>{/if}
 			<form onsubmit={saveJob}>
 				<div class="form-grid">
-					<label
-						>Job title<input
+					<label class="field-label"
+						>Job title<Input
 							name="title"
 							value={edit?.title || ''}
 							required
-							minlength="2"
-							maxlength="160"
+							minlength={2}
+							maxlength={160}
 						/></label
-					><label
-						>Company<input
+					><label class="field-label"
+						>Company<Input
 							name="company"
 							value={edit?.company || ''}
 							required
-							maxlength="120"
+							maxlength={120}
 						/></label
-					><label
-						>Location<input
+					><label class="field-label"
+						>Location<Input
 							name="location"
 							value={edit?.location || ''}
 							required
-							maxlength="160"
+							maxlength={160}
 							placeholder="e.g. United States"
 						/></label
-					><label
-						>Workplace<select name="workplace" value={edit?.workplace || 'Remote'}
+					><label class="field-label"
+						>Workplace<select class="du-select" name="workplace" value={edit?.workplace || 'Remote'}
 							><option>Remote</option><option>Hybrid</option><option>On-site</option><option
 								>Not specified</option
 							></select
 						></label
-					><label
+					><label class="field-label"
 						>Employment type<select
+							class="du-select"
 							name="employment_type"
 							value={edit?.employment_type || 'Full-time'}
 							><option>Full-time</option><option>Part-time</option><option>Contract</option><option
 								>Internship</option
 							><option>Not specified</option></select
 						></label
-					><label
-						>Compensation<input
+					><label class="field-label"
+						>Compensation<Input
 							name="salary"
 							value={edit?.salary || ''}
-							maxlength="120"
+							maxlength={120}
 							placeholder="e.g. $120,000–$150,000 / year"
 						/></label
 					>
 				</div>
-				<label
-					>Application URL<input
+				<label class="field-label"
+					>Application URL<Input
 						name="application_url"
 						type="url"
 						value={edit?.application_url || ''}
 						required
-						maxlength="2000"
+						maxlength={2000}
 					/></label
-				><label
-					>About the role<textarea
+				><label class="field-label"
+					>About the role<Textarea
 						name="description"
-						rows="5"
+						rows={5}
 						required
-						minlength="10"
-						maxlength="30000"
-						value={edit?.description || ''}></textarea></label
-				><label
-					>Requirements<textarea
+						minlength={10}
+						maxlength={30000}
+						value={edit?.description || ''}
+					></Textarea></label
+				><label class="field-label"
+					>Requirements<Textarea
 						name="requirements"
-						rows="3"
-						maxlength="15000"
-						value={edit?.requirements || ''}></textarea></label
-				><label
-					>Skills / tags <span class="muted">(comma separated)</span><input
+						rows={3}
+						maxlength={15000}
+						value={edit?.requirements || ''}
+					></Textarea></label
+				><label class="field-label"
+					>Skills / tags <span class="muted">(comma separated)</span><Input
 						name="tags"
 						value={edit ? tags(edit.tags).join(', ') : ''}
 					/></label
 				>
 				<div class="form-grid">
-					<label
-						>Visibility<select name="visibility" value={edit?.visibility || 'all'}
+					<label class="field-label"
+						>Visibility<select class="du-select" name="visibility" value={edit?.visibility || 'all'}
 							><option value="all">All clients</option><option value="assigned"
 								>Assigned clients only</option
 							></select
 						></label
-					><label
-						>Deadline <span class="muted">(optional)</span><input
+					><label class="field-label"
+						>Deadline <span class="muted">(optional)</span><Input
 							name="deadline"
 							type="date"
 							value={edit?.deadline || ''}
@@ -268,8 +290,8 @@
 				<label class="checkbox-row"
 					><input type="checkbox" name="active" checked={edit ? !!edit.active : true} />Published
 					and accepting applications</label
-				><button class="button primary full" disabled={busy}
-					>{busy ? 'Saving…' : 'Save opportunity'}</button
+				><Button variant="default" type="submit" class="button primary w-full" disabled={busy}
+					>{busy ? 'Saving…' : 'Save opportunity'}</Button
 				>
 			</form>
 		</div>
@@ -281,12 +303,17 @@
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="assign-title"
-			tabindex="-1"
+			tabindex={-1}
 		>
 			<div class="section-heading">
 				<h2 id="assign-title">Assign clients</h2>
-				<button class="icon-button" aria-label="Close assignments" onclick={() => (assign = null)}
-					><X size={20} /></button
+				<Button
+					variant="ghost"
+					type="button"
+					size="icon"
+					class="icon-button"
+					aria-label="Close assignments"
+					onclick={() => (assign = null)}><X size={20} /></Button
 				>
 			</div>
 			<p>{assign.title} · {assign.company}</p>
@@ -301,8 +328,12 @@
 						></label
 					>{/each}
 			</div>
-			<button class="button primary full" disabled={busy} onclick={saveAssignments}
-				>{busy ? 'Saving…' : `Save ${selected.length} assignments`}</button
+			<Button
+				variant="default"
+				type="button"
+				class="button primary w-full"
+				disabled={busy}
+				onclick={saveAssignments}>{busy ? 'Saving…' : `Save ${selected.length} assignments`}</Button
 			>
 		</div>
 	</div>{/if}

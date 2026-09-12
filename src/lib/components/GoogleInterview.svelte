@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button } from '@usecase-ui/svelte';
+
 	import { invalidateAll } from '$app/navigation';
 	import { api } from '$lib/client';
 	let {
@@ -42,20 +44,41 @@
 			target="_blank"
 			rel="noreferrer">Open in Google Calendar ↗</a
 		>{/if}
-	{#if connected}<button class="text-button" disabled={busy} onclick={() => sync()}
-			>{busy ? 'Syncing…' : link ? 'Sync with Google' : 'Add to Google Calendar'}</button
-		>{#if !link?.meet_url}<button class="text-button" disabled={busy} onclick={() => sync(true)}
-				>Create Google Meet</button
+	{#if connected}<Button
+			variant="ghost"
+			type="button"
+			size="sm"
+			class="text-button"
+			disabled={busy}
+			onclick={() => sync()}
+			>{busy ? 'Syncing…' : link ? 'Sync with Google' : 'Add to Google Calendar'}</Button
+		>{#if !link?.meet_url}<Button
+				variant="ghost"
+				type="button"
+				size="sm"
+				class="text-button"
+				disabled={busy}
+				onclick={() => sync(true)}>Create Google Meet</Button
 			>{/if}{/if}
 	{#if error || link?.last_error}<div class="alert error w-full" role="alert">
 			<p>{error || link?.last_error}</p>
 			{#if link}<p class="text-sm">
 					If both calendars changed, choose which interview time to keep.
 				</p>
-				<button class="text-button mr-4" disabled={busy} onclick={() => sync(false, 'google')}
-					>Use Google version</button
-				><button class="text-button" disabled={busy} onclick={() => sync(false, 'portal')}
-					>Use portal version</button
+				<Button
+					variant="ghost"
+					type="button"
+					size="sm"
+					class="text-button mr-4"
+					disabled={busy}
+					onclick={() => sync(false, 'google')}>Use Google version</Button
+				><Button
+					variant="ghost"
+					type="button"
+					size="sm"
+					class="text-button"
+					disabled={busy}
+					onclick={() => sync(false, 'portal')}>Use portal version</Button
 				>{/if}
 		</div>{/if}
 </div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, Input, Textarea } from '@usecase-ui/svelte';
+
 	import { focusDialog } from '$lib/focus';
 	import { invalidateAll } from '$app/navigation';
 	import { api } from '$lib/client';
@@ -69,39 +71,44 @@
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="interview-title"
-		tabindex="-1"
+		tabindex={-1}
 		class="modal"
 	>
 		<div class="section-heading">
 			<h2 id="interview-title">{item ? 'Edit interview' : 'Schedule an interview'}</h2>
-			<button class="icon-button" aria-label="Close interview form" onclick={onclose}
-				><X size={20} /></button
+			<Button
+				variant="ghost"
+				type="button"
+				size="icon"
+				class="icon-button"
+				aria-label="Close interview form"
+				onclick={onclose}><X size={20} /></Button
 			>
 		</div>
 		<p class="muted">
 			Enter times in your device timezone. Your agenda displays them in {timezone}.
 		</p>
 		<form onsubmit={submit}>
-			{#if error}<p class="alert error" role="alert">{error}</p>{/if}<label
-				>Interview round<input
+			{#if error}<p class="alert error" role="alert">{error}</p>{/if}<label class="field-label"
+				>Interview round<Input
 					name="title"
 					value={item?.title || ''}
 					placeholder="e.g. Technical interview"
-					minlength="2"
-					maxlength="160"
+					minlength={2}
+					maxlength={160}
 					required
 				/></label
 			>
 			<div class="form-grid">
-				<label
-					>Starts<input
+				<label class="field-label"
+					>Starts<Input
 						name="starts_at"
 						type="datetime-local"
 						value={local(item?.starts_at)}
 						required
 					/></label
-				><label
-					>Ends<input
+				><label class="field-label"
+					>Ends<Input
 						name="ends_at"
 						type="datetime-local"
 						value={local(item?.ends_at)}
@@ -109,31 +116,32 @@
 					/></label
 				>
 			</div>
-			<label
-				>State<select name="state" value={item?.state || 'scheduled'}
+			<label class="field-label"
+				>State<select class="du-select" name="state" value={item?.state || 'scheduled'}
 					><option value="scheduled">Scheduled</option><option value="completed">Completed</option
 					><option value="cancelled">Cancelled</option></select
 				></label
-			><label
-				>Meeting link or location<input
+			><label class="field-label"
+				>Meeting link or location<Input
 					name="location"
 					value={item?.location || ''}
-					maxlength="1000"
+					maxlength={1000}
 					placeholder="Video call link or office address"
 				/></label
-			><label
-				>Preparation notes<textarea
+			><label class="field-label"
+				>Preparation notes<Textarea
 					name="notes"
-					rows="3"
-					maxlength="5000"
+					rows={3}
+					maxlength={5000}
 					value={item?.notes || ''}
-					placeholder="Who you’re meeting, what to prepare…"></textarea></label
-			><button class="button primary full" disabled={busy}
+					placeholder="Who you’re meeting, what to prepare…"
+				></Textarea></label
+			><Button variant="default" type="submit" class="button primary w-full" disabled={busy}
 				><CalendarDays size={17} />{busy
 					? 'Saving…'
 					: item
 						? 'Save interview'
-						: 'Add interview'}</button
+						: 'Add interview'}</Button
 			>
 		</form>
 	</div>

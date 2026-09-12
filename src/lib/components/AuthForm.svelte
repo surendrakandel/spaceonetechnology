@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, Input } from '@usecase-ui/svelte';
+
 	import AccountStory from './AccountStory.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { ArrowUpRight, ArrowRight, Eye, EyeOff, Check, Download, KeyRound } from '@lucide/svelte';
@@ -48,24 +50,28 @@
 				<p class="muted">
 					Save this backup in your password manager for account recovery. We only show it once.
 				</p>
-				<code class="recovery-key">{recovery}</code><button
-					class="button secondary full"
+				<code class="recovery-key">{recovery}</code><Button
+					variant="outline"
+					type="button"
+					class="button secondary w-full"
 					onclick={() => {
 						downloadText(
 							'space-one-recovery-key.txt',
 							`Space One Technology account recovery key\n\n${recovery}\n\nKeep this private. Use at /recover if you forget your password.\n`
 						);
 						saved = true;
-					}}><Download size={17} />Download recovery key</button
+					}}><Download size={17} />Download recovery key</Button
 				><label class="checkbox-row"
 					><input type="checkbox" bind:checked={saved} /> I have saved my recovery key somewhere safe.</label
-				><button
-					class="button primary full"
+				><Button
+					variant="default"
+					type="button"
+					class="button primary w-full"
 					disabled={!saved}
 					onclick={async () => {
 						await invalidateAll();
 						await goto('/dashboard');
-					}}>Open my workspace <ArrowRight size={17} /></button
+					}}>Open my workspace <ArrowRight size={17} /></Button
 				>
 			{:else}<p class="eyebrow">YOUR CLIENT WORKSPACE</p>
 				<h2>
@@ -84,29 +90,29 @@
 				</p>
 				<form onsubmit={submit}>
 					{#if error}<p class="alert error" role="alert">{error}</p>{/if}
-					{#if mode === 'signup'}<label
-							>Full name<input
+					{#if mode === 'signup'}<label class="field-label"
+							>Full name<Input
 								name="name"
 								autocomplete="name"
 								required
-								minlength="2"
-								maxlength="100"
+								minlength={2}
+								maxlength={100}
 								placeholder="Your name"
 							/></label
 						>{/if}
-					{#if mode === 'signup'}<label
-							>Phone number<input
+					{#if mode === 'signup'}<label class="field-label"
+							>Phone number<Input
 								name="phone"
 								type="tel"
 								autocomplete="tel"
 								required
-								minlength="7"
-								maxlength="30"
+								minlength={7}
+								maxlength={30}
 								placeholder="+1 (555) 123-4567"
 							/></label
 						>{/if}
-					<label
-						>Email address<input
+					<label class="field-label"
+						>Email address<Input
 							name="email"
 							type="email"
 							autocomplete="email"
@@ -114,8 +120,8 @@
 							placeholder="you@example.com"
 						/></label
 					>
-					{#if mode === 'recover'}<label
-							>Recovery key<input
+					{#if mode === 'recover'}<label class="field-label"
+							>Recovery key<Input
 								name="recovery_key"
 								required
 								pattern="[a-f0-9]{64}"
@@ -126,34 +132,36 @@
 					<label
 						>{mode === 'recover' ? 'New password' : 'Password'}
 						<div class="password-input">
-							<input
+							<Input
 								name="password"
 								type={show ? 'text' : 'password'}
 								autocomplete={mode === 'login' ? 'current-password' : 'new-password'}
 								required
 								minlength={mode === 'login' ? 1 : 12}
-								maxlength="128"
+								maxlength={128}
 								placeholder={mode === 'login' ? 'Enter your password' : 'At least 12 characters'}
-							/><button
+							/><Button
+								variant="ghost"
+								size="icon"
 								type="button"
 								class="icon-button"
 								aria-label={show ? 'Hide password' : 'Show password'}
 								onclick={() => (show = !show)}
-								>{#if show}<EyeOff size={18} />{:else}<Eye size={18} />{/if}</button
+								>{#if show}<EyeOff size={18} />{:else}<Eye size={18} />{/if}</Button
 							>
 						</div></label
 					>
 					{#if mode === 'login'}<div class="form-right">
 							<a href="/client/forgot-password">Forgot password?</a>
 						</div>{/if}
-					<button class="button primary full" disabled={busy}
+					<Button variant="default" type="submit" class="button primary w-full" disabled={busy}
 						>{busy
 							? 'Please wait…'
 							: mode === 'login'
 								? 'Sign in'
 								: mode === 'signup'
 									? 'Create account'
-									: 'Reset password'}<ArrowRight size={18} /></button
+									: 'Reset password'}<ArrowRight size={18} /></Button
 					>
 					{#if mode === 'signup'}<p class="form-footnote">
 							Your resumes and application updates are shared with authorized Space One staff to
@@ -179,7 +187,7 @@
 	}
 	.auth-form > .muted,
 	.auth-top {
-		color: var(--muted);
+		color: var(--color-text-muted);
 	}
 	.auth-form .eyebrow {
 		color: var(--forest);

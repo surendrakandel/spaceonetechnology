@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Button, Card, Input } from '@usecase-ui/svelte';
+
 	import { FileText, Image, Download, ArrowUpRight, Search } from '@lucide/svelte';
 	import { date, fileSize } from '$lib/client';
 	let { data } = $props();
@@ -25,19 +27,20 @@
 <div class="board-toolbar document-toolbar">
 	<div class="status-tabs">
 		{#each [{ id: 'all', label: 'All documents' }, { id: 'resume', label: 'Resumes' }, { id: 'proof', label: 'Application proof' }] as tab}<button
+				class="du-btn du-btn-ghost"
 				class:active={kind === tab.id}
 				onclick={() => (kind = tab.id)}>{tab.label}</button
 			>{/each}
 	</div>
 	<div class="search-input">
-		<Search size={17} /><input
+		<Search size={17} /><Input
 			bind:value={query}
 			aria-label="Search documents"
 			placeholder="Search files or companies…"
 		/>
 	</div>
 </div>
-<div class="panel">
+<Card class="panel">
 	{#each files as file}<div class="file-row document-row">
 			<div class="file-icon">
 				{#if file.kind === 'resume'}<FileText size={23} />{:else}<Image size={23} />{/if}
@@ -51,10 +54,13 @@
 						: 'Application proof'}</small
 				>
 			</div>
-			<a class="button secondary" href={`/api/files/${file.id}`}
-				><Download size={16} /><span>Download</span></a
-			><a class="icon-button" aria-label="Open related job" href={`/jobs/${file.job_id}`}
-				><ArrowUpRight size={18} /></a
+			<Button variant="outline" class="button secondary" href={`/api/files/${file.id}`}
+				><Download size={16} /><span>Download</span></Button
+			><Button
+				variant="default"
+				class="icon-button"
+				aria-label="Open related job"
+				href={`/jobs/${file.job_id}`}><ArrowUpRight size={18} /></Button
 			>
 		</div>{:else}<div class="empty-state">
 			<FileText size={35} strokeWidth={1.3} />
@@ -65,6 +71,8 @@
 				Upload a resume or a confirmation screenshot from a job’s page. You’ll find every version
 				here.
 			</p>
-			<a class="button primary" href="/jobs">Go to my opportunities <ArrowUpRight size={16} /></a>
+			<Button variant="default" class="button primary" href="/jobs"
+				>Go to my opportunities <ArrowUpRight size={16} /></Button
+			>
 		</div>{/each}
-</div>
+</Card>
