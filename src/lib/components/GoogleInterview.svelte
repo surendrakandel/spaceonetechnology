@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from '@usecase-ui/svelte';
-
 	import { invalidateAll } from '$app/navigation';
 	import { api } from '$lib/client';
 	let {
